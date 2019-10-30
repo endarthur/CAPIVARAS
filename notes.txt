@@ -1,0 +1,65 @@
+callback from js -- https://gist.github.com/epifanio/a1152047086def509906fa71a9eb11ad
+https://stackoverflow.com/questions/41780435/return-value-from-javascript-to-pyqt5
+
+qtwebchannel -- https://stackoverflow.com/a/42740287/1457481
+
+debug web -- 
+set QTWEBENGINE_REMOTE_DEBUGGING=6502
+
+axis on corner --
+http://jsfiddle.net/aqnL1mx9/
+https://stackoverflow.com/questions/16226693/three-js-show-world-coordinate-axes-in-corner-of-scene
+
+get frustrum from camera --
+https://stackoverflow.com/a/24883383/1457481
+https://stackoverflow.com/a/10858931/1457481
+
+
+hardware acceleration pro --
+https://github.com/qutebrowser/qutebrowser/issues/2671
+
+webworkers in three.js --
+https://stackoverflow.com/a/48620639/1457481
+
+basic geometry for 3d --
+https://www.scratchapixel.com/lessons/mathematics-physics-for-computer-graphics/geometry
+
+zoom to selection --
+https://codepen.io/looeee/pen/vwVeZB
+
+color from texture --
+https://stackoverflow.com/a/35007292/1457481
+
+chrome dev tools from python --
+https://github.com/marty90/PyChromeDevTools
+# chrome.Runtime.evaluate(expression="camera.projectionMatrix", returnByValue=True)
+# https://chromedevtools.github.io/devtools-protocol/tot/Runtime
+
+colored icon fill from gui programming with python --
+class ColorButton(qtw.QPushButton):
+
+    changed = qtc.pyqtSignal()
+
+    def __init__(self, default_color, changed=None):
+        super().__init__()
+        self.set_color(qtg.QColor(default_color))
+        self.clicked.connect(self.on_click)
+        if changed:
+            self.changed.connect(changed)
+
+    def set_color(self, color):
+        self._color = color
+        # update icon
+        pixmap = qtg.QPixmap(32, 32)
+        pixmap.fill(self._color)
+        self.setIcon(qtg.QIcon(pixmap))
+
+    def on_click(self):
+        color = qtw.QColorDialog.getColor(self._color)
+        if color:
+            self.set_color(color)
+            self.changed.emit()
+
+# gpu picking
+https://riptutorial.com/three-js/example/17089/object-picking---gpu
+https://github.com/brianxu/GPUPicker
