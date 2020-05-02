@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>three.js webgl - PLY</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <style>
+      body {
+        font-family: Monospace;
+        background-color: #000000;
+        margin: 0px;
+        overflow: hidden;
+      }
+
+      #info {
+        color: #fff;
+        position: absolute;
+        top: 10px;
+        width: 100%;
+        text-align: center;
+        z-index: 100;
+        display: block;
+      }
+
+      a {
+        color: skyblue;
+      }
+
+      .button {
+        background: #999;
+        color: #eee;
+        padding: 0.2em 0.5em;
+        cursor: pointer;
+      }
+
+      .highlight {
+        background: orange;
+        color: #fff;
+      }
+
+      span {
+        display: inline-block;
+        width: 60px;
+        float: left;
+        text-align: center;
+      }
+
+      #inset {
+        width: 200px;
+        height: 200px;
+        background-color: #00000000;
+        /* or transparent; will show through only if renderer alpha: true */
+        margin: 20px;
+        padding: 0px;
+        position: absolute;
+        left: 0px;
+        bottom: 0px;
+        z-index: 100;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="container"></div>
+    <div id="inset"></div>
+    <script src="js/three.js"></script>
+    <script src="js/OrbitControlsNew.js"></script>
+    <script src="js/PLYLoader.js"></script>
+    <script src="js/Detector.js"></script>
+    <script src="js/tinyqueue.js"></script>
+    <script src="js/GPUPicker.js"></script>
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <script src="js/capivaras.js"></script>
+    <script src="viewer.js"></script>
+  </body>
+</html>

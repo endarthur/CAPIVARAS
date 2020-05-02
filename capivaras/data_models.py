@@ -4,6 +4,9 @@ import numpy as np
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot  # type: ignore
 
+from capivaras.ui.ui_interface import Settings
+from capivaras.ui.mesh_properties_ui import Ui_Dialog as mesh_Ui_Dialog
+
 
 class OPTreeWidget(QtWidgets.QTreeWidget):
     itemsMoved = Signal(list, bool)
@@ -28,6 +31,16 @@ class OPTreeWidget(QtWidgets.QTreeWidget):
         )
 
 
+class MeshListModel(QtCore.QAbstractListModel):
+    def __init__(self, layersTree):
+        self.layersTree = layersTree
+    def rowCount(parent=QtCore.QModelIndex):
+        return self.layersTree.topLevelItemCount()
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        if role == QtCore.Qt.DisplayRole:
+            self.layersTree.topLevelItem(index.row()).text(0)
+
+
 class GroupItem(QtWidgets.QTreeWidgetItem):
     def __init__(self, name: str, parent: QtCore.QObject, item_id: int):
         super().__init__(parent)
@@ -46,9 +59,12 @@ class GroupItem(QtWidgets.QTreeWidgetItem):
 
 
 class Item(QtWidgets.QTreeWidgetItem):
-    def __init__(self, name: str, parent: QtCore.QObject, item_id: int):
+    dialog: QtWidgets.QDialog
+    dialog_ui: object
+    def __init__(self, name: str, parent: QtCore.QObject, item_id: int, item_data: dict):
         super().__init__(parent)
         self.id = item_id
+        self.data = item_data
 
         self.setText(0, name)
         self.setCheckState(0, QtCore.Qt.Checked)
@@ -95,7 +111,8 @@ class ItemSet(QtWidgets.QTreeWidgetItem):
         )
         self.setExpanded(True)
 
-        self.color = color
+        # self.color = color
+        self.set_color(color)
 
     def set_color(self, color: QtGui.QColor) -> None:
         self.color = color
@@ -104,8 +121,8 @@ class ItemSet(QtWidgets.QTreeWidgetItem):
         pixmap.fill(self.color)
         self.setIcon(0, QtGui.QIcon(pixmap))
 
-    def add_item(self, name: str, item_id: int) -> Item:
-        return self.item_class(name, self, item_id)
+    def add_item(self, name: str, item_id: int, item_data: dict) -> Item:
+        return self.item_class(name, self, item_id, item_data)
 
 
 class PlaneSet(ItemSet):
@@ -133,15 +150,31 @@ class SetGroup(QtWidgets.QTreeWidgetItem):
         )
         self.setExpanded(True)
 
+    # TODO: get color as a string or int, not as a QColor, I think
     def add_set(self, name: str, set_id: int, color: QtGui.QColor) -> ItemSet:
         return self.set_class(name, self, set_id, color)
 
+    @property
+    def items(self):
+        return [self.child(index) for index in range(self.childCount())]
 
-class Mesh(Item):
+
+class Mesh(Item, Settings):
+    properties_ui = mesh_Ui_Dialog
     def __init__(
-        self, name: str, parent: QtCore.QObject, item_id: int
+        self, name: str, parent: QtCore.QObject, item_id: int, item_data: dict
     ) -> None:
-        super().__init__(name, parent, item_id)
+        super().__init__(name, parent, item_id, item_data)
 
         self.plane_sets = SetGroup("planes", self, PlaneSet)
-        self.trace_sets = SetGroup("planes", self, TraceSet)
+        self.trace_sets = SetGroup("traces", self, TraceSet)
+
+        self.material_settings = {
+            "flatShading": True,
+            "color": 0xffffff,
+            "metalness": 0.0,
+            "roughness": 1.0,
+            "vertexColors": True,
+            "flatShading": True,
+            "wireframe": False
+        }

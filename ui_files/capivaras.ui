@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>StdSlope</string>
+   <string>CAPIVARAS</string>
   </property>
   <widget class="QWidget" name="centralwidget"/>
   <widget class="QMenuBar" name="menubar">
@@ -48,7 +48,14 @@
     </property>
     <addaction name="actionReload"/>
    </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <addaction name="actionProjectSettings"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuSettings"/>
    <addaction name="menuWindow"/>
    <addaction name="menuTools"/>
   </widget>
@@ -98,6 +105,11 @@
   <action name="actionImport_Mesh_West_Down_South">
    <property name="text">
     <string>Import Mesh (West, Down, South)</string>
+   </property>
+  </action>
+  <action name="actionProjectSettings">
+   <property name="text">
+    <string>Project Settings</string>
    </property>
   </action>
  </widget>

@@ -63,3 +63,6 @@ class ColorButton(qtw.QPushButton):
 # gpu picking
 https://riptutorial.com/three-js/example/17089/object-picking---gpu
 https://github.com/brianxu/GPUPicker
+
+# filter on a mesh
+https://diglib.eg.org/handle/10.2312/3dor20181060

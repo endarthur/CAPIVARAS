@@ -7,10 +7,11 @@ from typing import Type
 from PyQt5 import QtWidgets
 # from PyQt5 import QtCore
 
-from openslope import __version__
-from openslope.main_window import Main
+from capivaras import __version__
+from capivaras.main_window import Main
 
 
+# https://stackoverflow.com/a/57792609/1457481
 def run() -> None:
     def my_excepthook(
         exception_type: Type[BaseException],
@@ -30,7 +31,7 @@ def run() -> None:
     sys.excepthook = my_excepthook  # type: ignore
 
     app = QtWidgets.QApplication(sys.argv)
-    app.setApplicationName("OpenSlope")
+    app.setApplicationName("CAPIVARAS")
     app.setApplicationVersion(__version__)
 
     main = Main()

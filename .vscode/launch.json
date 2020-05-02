@@ -5,12 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "OpenSlope",
+            "name": "CAPIVARAS",
             "type": "python",
             "request": "launch",
-            "module": "openslope",
+            "module": "capivaras",
             "env": {
-                "QTWEBENGINE_REMOTE_DEBUGGING": 6502,
+                "QTWEBENGINE_REMOTE_DEBUGGING": "6502",
             },
         }
     ]

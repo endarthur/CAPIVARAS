@@ -7,7 +7,7 @@ var THREE = THREE || {};
 	var _v2 = new THREE.Vector2();
 	var FaceIDShader = {
 		vertexShader: [
-			"attribute float id;",
+			"attribute vec2 id;",
 			"",
 			"uniform float size;",
 			"uniform float scale;",
@@ -18,10 +18,10 @@ var THREE = THREE || {};
 			"void main() {",
 			"  vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );",
 			"  gl_PointSize = size * ( scale / length( mvPosition.xyz ) );",
-			"  float i = baseId + id;",
+			"  float i = baseId + id.x;",
 			"  vec3 a = fract(vec3(1.0/255.0, 1.0/(255.0*255.0), 1.0/(255.0*255.0*255.0)) * i);",
 			"  a -= a.xxy * vec3(0.0, 1.0/255.0, 1.0/255.0);",
-			"  worldId = vec4(a,1);",
+			"  worldId = vec4(a, 1);",
 			"  gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
 			"}"
 		].join("\n"),
@@ -349,7 +349,9 @@ var THREE = THREE || {};
 		if (object) {
 			if (object.raycastWithID) {
 				var intersect = object.raycastWithID(elementId, raycaster);
-				intersect.object = object.originalObject;
+				if (intersect) {
+					intersect.object = object.originalObject;
+				}
 				return intersect;
 			}
 
@@ -397,15 +399,16 @@ var THREE = THREE || {};
 
 		if (object.geometry) {
 			var __pickingGeometry;
+			var geometry;
 			//check if geometry has cached geometry for picking
 			if (object.geometry.__pickingGeometry) {
 				__pickingGeometry = object.geometry.__pickingGeometry;
 			} else {
-				__pickingGeometry = object.geometry;
+				geometry = object.geometry;
 				// convert geometry to buffer geometry
 				if (object.geometry instanceof THREE.Geometry) {
 					if (this.debug) console.log("convert geometry to buffer geometry");
-					__pickingGeometry = new THREE.BufferGeometry().setFromObject(object);
+					geometry = new THREE.BufferGeometry().setFromObject(object);
 				}
 				var units = 1;
 				if (object instanceof THREE.Points) {
@@ -416,15 +419,12 @@ var THREE = THREE || {};
 					units = 3;
 				}
 				var el, el3, elementsCount, i, indices, positionBuffer, vertex3, verts, vertexIndex3;
-				if (__pickingGeometry.index !== null) {
-					__pickingGeometry = __pickingGeometry.clone();
+				if (geometry.index !== null) {
+					__pickingGeometry = new THREE.BufferGeometry();
 					if (this.debug) console.log("convert indexed geometry to non-indexed geometry");
 
-					indices = __pickingGeometry.index.array;
-					verts = __pickingGeometry.attributes.position.array;
-					delete __pickingGeometry.attributes.position;
-					__pickingGeometry.index = null;
-					delete __pickingGeometry.attributes.normal;
+					indices = geometry.index.array;
+					verts = geometry.attributes.position.array;
 					elementsCount = indices.length / units;
 					positionBuffer = new Float32Array(elementsCount * 3 * units);
 
@@ -463,18 +463,19 @@ var THREE = THREE || {};
 
 					}
 
-					__pickingGeometry.computeVertexNormals();
+					// __pickingGeometry.computeVertexNormals();
 					object.__proto__ = THREE.LineSegments.prototype; //make the renderer render as line segments
 				}
 				var attributes = __pickingGeometry.attributes;
 				var positions = attributes.position.array;
 				var vertexCount = positions.length / 3;
-				var ids = new THREE.Float32BufferAttribute(vertexCount, 1);
+				var ids = new THREE.Float32BufferAttribute(2 * vertexCount, 2);
 				//set vertex id color
 
 				for (var i = 0, il = vertexCount / units; i < il; i++) {
 					for (var j = 0; j < units; ++j) {
-						ids.array[i * units + j] = i;
+						ids.array[2*(i * units + j)] = i & 0xffffff;
+						ids.array[2*(i * units + j) + 1] = i >> 24;
 					}
 				}
 				__pickingGeometry.addAttribute('id', ids);

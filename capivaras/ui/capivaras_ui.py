@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui_files\openslope.ui'
+# Form implementation generated from reading ui file 'ui_files\capivaras.ui'
 #
-# Created by: PyQt5 UI code generator 5.13.1
+# Created by: PyQt5 UI code generator 5.6
 #
 # WARNING! All changes made in this file will be lost!
 
-
 from PyQt5 import QtCore, QtGui, QtWidgets
-
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -28,6 +26,8 @@ class Ui_MainWindow(object):
         self.menuPanels.setObjectName("menuPanels")
         self.menuTools = QtWidgets.QMenu(self.menubar)
         self.menuTools.setObjectName("menuTools")
+        self.menuSettings = QtWidgets.QMenu(self.menubar)
+        self.menuSettings.setObjectName("menuSettings")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -50,12 +50,16 @@ class Ui_MainWindow(object):
         self.actionImport_Mesh_East_North_Up.setObjectName("actionImport_Mesh_East_North_Up")
         self.actionImport_Mesh_West_Down_South = QtWidgets.QAction(MainWindow)
         self.actionImport_Mesh_West_Down_South.setObjectName("actionImport_Mesh_West_Down_South")
+        self.actionProjectSettings = QtWidgets.QAction(MainWindow)
+        self.actionProjectSettings.setObjectName("actionProjectSettings")
         self.menuFile.addAction(self.actionImport_Mesh)
         self.menuFile.addAction(self.actionImport_Mesh_East_North_Up)
         self.menuFile.addAction(self.actionImport_Mesh_West_Down_South)
         self.menuWindow.addAction(self.menuPanels.menuAction())
         self.menuTools.addAction(self.actionReload)
+        self.menuSettings.addAction(self.actionProjectSettings)
         self.menubar.addAction(self.menuFile.menuAction())
+        self.menubar.addAction(self.menuSettings.menuAction())
         self.menubar.addAction(self.menuWindow.menuAction())
         self.menubar.addAction(self.menuTools.menuAction())
 
@@ -64,11 +68,12 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "StdSlope"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "CAPIVARAS"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.menuWindow.setTitle(_translate("MainWindow", "Window"))
         self.menuPanels.setTitle(_translate("MainWindow", "Panels"))
         self.menuTools.setTitle(_translate("MainWindow", "Tools"))
+        self.menuSettings.setTitle(_translate("MainWindow", "Settings"))
         self.actionImport_Mesh.setText(_translate("MainWindow", "Import Mesh"))
         self.actionset.setText(_translate("MainWindow", "set"))
         self.actionLayers.setText(_translate("MainWindow", "Layers"))
@@ -76,3 +81,5 @@ class Ui_MainWindow(object):
         self.actionReload.setText(_translate("MainWindow", "Reload"))
         self.actionImport_Mesh_East_North_Up.setText(_translate("MainWindow", "Import Mesh (East, North, Up)"))
         self.actionImport_Mesh_West_Down_South.setText(_translate("MainWindow", "Import Mesh (West, Down, South)"))
+        self.actionProjectSettings.setText(_translate("MainWindow", "Project Settings"))
+

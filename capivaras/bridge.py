@@ -1,6 +1,9 @@
-from PyQt5 import QtWidgets, QtCore
+from typing import Callable, List
+
+from PyQt5 import QtCore, QtWidgets
 # from PyQt5 import QtGui
-from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot  # type: ignore
+from PyQt5.QtCore import pyqtSignal as Signal  # type: ignore
+from PyQt5.QtCore import pyqtSlot as Slot
 
 
 class Bridge(QtCore.QObject):
@@ -9,13 +12,22 @@ class Bridge(QtCore.QObject):
     ) -> None:
         super().__init__(parent)
         self.window = window
+        self.on_ready: List[Callable] = []
 
     plotted_attitude = Signal(QtCore.QVariant)
     load_model = Signal(QtCore.QUrl, QtCore.QVariant)
+    update_capi_state = Signal(QtCore.QVariant)
+    update_capi_settings = Signal(QtCore.QVariant)
+    update_item_properties = Signal(QtCore.QVariant)
 
     @Slot(str)
     def print_to_python(self, text: str) -> None:
         print(text)
+
+    @Slot()
+    def ready(self) -> None:
+        for callback in self.on_ready:
+            callback()
 
     @Slot(QtCore.QVariant)
     def model_loaded(self, data: QtCore.QVariant) -> None:

@@ -25,7 +25,7 @@ class BuildUICommand(distutils.cmd.Command):
 
         for ui_file in glob("ui_files/*.ui"):
             basename = path.splitext(path.basename(ui_file))[0]
-            py_file = path.join("openslope", "ui", basename + "_ui.py")
+            py_file = path.join("capivaras", "ui", basename + "_ui.py")
             self.announce(
                 "Compiling Qt Designer source: %s" % str(ui_file),
                 level=distutils.log.INFO,
