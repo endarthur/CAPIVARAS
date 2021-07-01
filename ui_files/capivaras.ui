@@ -27,6 +27,12 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionNew"/>
+    <addaction name="actionOpen"/>
+    <addaction name="separator"/>
+    <addaction name="actionSave"/>
+    <addaction name="actionSave_as"/>
+    <addaction name="separator"/>
     <addaction name="actionImport_Mesh"/>
     <addaction name="actionImport_Mesh_East_North_Up"/>
     <addaction name="actionImport_Mesh_West_Down_South"/>
@@ -47,6 +53,7 @@
      <string>Tools</string>
     </property>
     <addaction name="actionReload"/>
+    <addaction name="actionSet_orientation"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -110,6 +117,34 @@
   <action name="actionProjectSettings">
    <property name="text">
     <string>Project Settings</string>
+   </property>
+  </action>
+  <action name="actionNew">
+   <property name="text">
+    <string>New</string>
+   </property>
+  </action>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Open...</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="actionSet_orientation">
+   <property name="text">
+    <string>Set orientation...</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+O</string>
+   </property>
+  </action>
+  <action name="actionSave_as">
+   <property name="text">
+    <string>Save as...</string>
    </property>
   </action>
  </widget>

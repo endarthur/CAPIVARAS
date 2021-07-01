@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="capi_icons">
+    <file alias="edit_state.svg">mActionToggleEditing.svg</file>
+  </qresource>
+</RCC>

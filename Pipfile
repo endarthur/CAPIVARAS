@@ -9,15 +9,17 @@ white = "*"
 black = "*"
 
 [packages]
-auttitude = "*"
+auttitude = "==0.1.4"
 pyqt5 = "*"
 pyqtwebengine = "*"
-openstereo = {file = "https://github.com/spamlab-iee/os/tarball/master"}
+openstereo = {file = "https://github.com/spamlab-iee/os/archive/v2.0b11.tar.gz"}
 mypy = "*"
 pylama = "*"
+pandas = "*"
+xlsxwriter = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"
 
 [pipenv]
 allow_prereleases = true

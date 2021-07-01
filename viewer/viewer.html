@@ -59,6 +59,17 @@
         left: 0px;
         bottom: 0px;
         z-index: 100;
+        pointer-events: none;
+      }
+      #inspect-orientation {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 100%;
+        text-align: right;
+        z-index: 100;
+        display: block;
+        white-space: pre;
       }
     </style>
   </head>
@@ -66,6 +77,8 @@
   <body>
     <div id="container"></div>
     <div id="inset"></div>
+    <div id="inspect-orientation">123/45</div>
+    <script src="js/mousetrap.min.js"></script>
     <script src="js/three.js"></script>
     <script src="js/OrbitControlsNew.js"></script>
     <script src="js/PLYLoader.js"></script>
@@ -73,6 +86,7 @@
     <script src="js/tinyqueue.js"></script>
     <script src="js/GPUPicker.js"></script>
     <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <script src="js/autti.js"></script>
     <script src="js/capivaras.js"></script>
     <script src="viewer.js"></script>
   </body>

@@ -1,0 +1,42 @@
+Lista de coisas a fazer (status entre colchetes):
+[finalizado] ferramenta de pintar planos, para ser um ply2atti sem precisar do meshlab
+[finalizado] calcular uma atitude usando mais de 3 pontos
+[finalizado] amostragem de traço semi automática
+[finalizado]  calcular a atitude média do talude
+[deixar a ponte bonita] plotar dados no OS (ficou decidido que a ponte não precisa ser perfeita, e nem necessariamente uma ponte. Devemos ser capazes de ter as atitudes para abrir em outro programa, etc.)
+[tá caminhando] extrair um perfil da malha em qualquer visada
+[tá no jupyter] análise de conectividade/topologia
+[polígono ok] ferramenta de máscara/corte de polígono. Desenha um polígono e usa para extrair número de pontos, faces, atitude, dispersão das normais no interior do polígono
+[finalizado] atalho liga/desliga wireframe e cor
+[finalizado] ver os planos pintados "voando" (a ideia de que será legal ver os planos em frentes de lavra que avançam no tempo)
+
+Atalhos de teclado:
+
+NAVEGAÇÃO
+NumPad 1 -- front view
+NumPad 3 -- right view
+Numpad 7 -- top view
+NumPad 9 -- left view
+(precisa de um pra ver por baixo será??)
+
+shift+Home -- view to fit
+
+R+x,y,z+número -- rotaciona em número graus no respectivo eixo
+
+shift+W -- liga/desliga wireframe
+
+shift+C -- liga/desliga cor
+
+H -- desliga o modelo selecionado na árvore
+
+PINTURA DE PLANO
+
+F -- tamanho do pincel
+shift+F -- brush strength
+I -- inverter cores do pincel
+delete (ou ctrl+z?) -- deleta último plano pintado
+
+DESENHO DE POLÍGONO
+
+backspace -- apaga último vértice
+esc -- cancela desenho

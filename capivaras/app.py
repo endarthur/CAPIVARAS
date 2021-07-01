@@ -10,6 +10,8 @@ from PyQt5 import QtWidgets
 from capivaras import __version__
 from capivaras.main_window import Main
 
+from capivaras.ui import capivaras_rc
+
 
 # https://stackoverflow.com/a/57792609/1457481
 def run() -> None:

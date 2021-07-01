@@ -637,7 +637,7 @@ THREE.OBJLoader = ( function () {
 				if ( geometry.vertices.length === 0 ) continue;
 
 				var buffergeometry = new THREE.BufferGeometry();
-
+				// TODO: check here before downcasting to float
 				buffergeometry.addAttribute( 'position', new THREE.Float32BufferAttribute( geometry.vertices, 3 ) );
 
 				if ( geometry.normals.length > 0 ) {

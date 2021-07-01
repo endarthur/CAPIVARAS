@@ -50,32 +50,6 @@ class DigitizerToolbar(QtWidgets.QToolBar):
     def set_data(self, item):
         raise NotImplemented
 
-
-class PlaneDigitizer(DigitizerToolbar):
-    def __init__(self, title: str, parent: QtWidgets.QWidget, tool_checked: bool = False) -> None:
-        super().__init__(title, parent)
-        self.plane_digitizer_tool = self.addAction("Plane")
-        self.plane_digitizer_tool.setCheckable(True)
-        self.plane_digitizer_tool.setChecked(tool_checked)
-
-    def set_data(self, item):  # TODO: is this the best way?
-        set_data = item.plane_sets.items
-        set_items = [v.text(0) for v in set_data]
-        return set_items, set_data
-
-
-class TraceDigitizer(DigitizerToolbar):
-    def __init__(self, title: str, parent: QtWidgets.QWidget, tool_checked: bool = False) -> None:
-        super().__init__(title, parent)
-        self.plane_digitizer_tool = self.addAction("Trace")
-        self.plane_digitizer_tool.setCheckable(True)
-        self.plane_digitizer_tool.setChecked(tool_checked)
-
-    def set_data(self, item):
-        set_data = item.trace_sets.items
-        set_items = [v.text(0) for v in set_data]
-        return set_items, set_data
-
 class CameraToolbar(QtWidgets.QToolBar):
     def __init__(self, title: str, parent: QtWidgets.QWidget):
         super().__init__(title, parent)
@@ -91,3 +65,28 @@ class CameraToolbar(QtWidgets.QToolBar):
         self.camera_group.addAction(self.select_orthographic_camera)
 
         self.select_perspective_camera.setChecked(True)
+
+
+class DrawingToolbar(QtWidgets.QToolBar):
+    def __init__(self, title: str, parent: QtWidgets.QWidget):
+        super().__init__(title, parent)
+        self.plane = self.addAction("plane")
+        self.plane.setCheckable(True)
+        self.plane.setData("plane")
+        self.trace = self.addAction("trace")
+        self.trace.setCheckable(True)
+        self.trace.setData("trace")
+        self.point = self.addAction("point")
+        self.point.setCheckable(True)
+        self.point.setData("point")
+        self.section = self.addAction("section")
+        self.section.setCheckable(True)
+        self.section.setData("section")
+
+        self.tool_group = QtWidgets.QActionGroup(self)
+        self.tool_group.addAction(self.plane)
+        self.tool_group.addAction(self.trace)
+        self.tool_group.addAction(self.point)
+        self.tool_group.addAction(self.section)
+
+        self.plane.setChecked(True)

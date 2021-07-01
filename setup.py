@@ -5,6 +5,7 @@ import distutils.cmd
 import distutils.log
 from glob import glob
 from os import path
+import subprocess
 
 
 class BuildUICommand(distutils.cmd.Command):
@@ -32,6 +33,18 @@ class BuildUICommand(distutils.cmd.Command):
             )
             with open(py_file, "w") as fout:
                 compileUi(ui_file, fout)
+        self.announce("Compiling resource file: capivaras_rc.py", level=distutils.log.INFO)
+        if not subprocess.run(
+            [
+                "pyrcc5",
+                "./ui_files/resources.qrc",
+                "-o",
+                "./capivaras/ui/capivaras_rc.py",
+            ]
+        ).returncode:
+            self.announce("OK", level=distutils.log.INFO)
+        else:
+            self.announce("error compiling resources file.", level=distutils.log.INFO)
         # also run:
         # pyrcc5 .\ui_files\openstereo.qrc -o .\openstereo\ui\openstereo_rc.py
         # if resources changed
@@ -47,11 +60,6 @@ setup(
     name="OpenSlope",
     version="0.2.0",
     packages=find_packages(),
-    entry_points={
-        "console_scripts": ["openslope = openslope.app:run"]
-    },
-
-    cmdclass={
-        "buildui": BuildUICommand
-    },
+    entry_points={"console_scripts": ["openslope = openslope.app:run"]},
+    cmdclass={"buildui": BuildUICommand},
 )

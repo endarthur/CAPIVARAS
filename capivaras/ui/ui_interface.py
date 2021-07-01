@@ -6,18 +6,18 @@ props_re = re.compile("([^_]+)_(color_)?(.+)_([^_]+)")
 
 
 class Settings:
-    @property
-    def item_settings(self) -> dict:
+    def _get_item_settings(self) -> dict:
         all_settings = {}
         for name, settings in list(vars(self).items()):
             if name.endswith("_settings"):
                 all_settings[name] = settings.copy()
         return all_settings
 
-    @item_settings.setter
-    def item_settings(self, data: dict) -> None:
+    def _set_item_settings(self, data: dict) -> None:
         for name, settings in list(data.items()):
             setattr(self, name, settings)
+
+    item_settings = property(_get_item_settings, _set_item_settings)
 
     def get_item_props(self, item_name: str) -> dict:
         return getattr(self, item_name.replace(" ", "_") + "_settings")

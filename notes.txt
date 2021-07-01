@@ -63,6 +63,12 @@ class ColorButton(qtw.QPushButton):
 # gpu picking
 https://riptutorial.com/three-js/example/17089/object-picking---gpu
 https://github.com/brianxu/GPUPicker
+## also indexed colors, maybe
+https://threejsfundamentals.org/threejs/lessons/threejs-indexed-textures.html
 
 # filter on a mesh
 https://diglib.eg.org/handle/10.2312/3dor20181060
+
+# Color for selected planes
+https://stackoverflow.com/questions/11379936/provide-an-integer-for-an-array-index-in-opengl-es-2-0/11380299
+https://medium.com/@pailhead011/extending-three-js-materials-with-glsl-78ea7bbb9270

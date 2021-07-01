@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui_files\mesh_properties.ui'
+# Form implementation generated from reading ui file 'ui_files\set_properties.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -50,9 +50,6 @@ class Ui_Dialog(object):
         self.prop_material_wireframe.setObjectName("prop_material_wireframe")
         self.formLayout.setWidget(5, QtWidgets.QFormLayout.SpanningRole, self.prop_material_wireframe)
         self.verticalLayout.addWidget(self.groupBox_4)
-        self.show_data_statistics = QtWidgets.QTextEdit(Dialog)
-        self.show_data_statistics.setObjectName("show_data_statistics")
-        self.verticalLayout.addWidget(self.show_data_statistics)
         spacerItem = QtWidgets.QSpacerItem(20, 41, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -70,7 +67,6 @@ class Ui_Dialog(object):
         self.horizontalLayout.addWidget(self.apply)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.groupBox_4.raise_()
-        self.show_data_statistics.raise_()
 
         self.retranslateUi(Dialog)
         self.ok_button.clicked.connect(Dialog.accept)

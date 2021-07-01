@@ -13,12 +13,17 @@ class Bridge(QtCore.QObject):
         super().__init__(parent)
         self.window = window
         self.on_ready: List[Callable] = []
+        self.ready_queue: List[Callable] = []
+        self.save_queue: List[Callable] = []
 
     plotted_attitude = Signal(QtCore.QVariant)
     load_model = Signal(QtCore.QUrl, QtCore.QVariant)
     update_capi_state = Signal(QtCore.QVariant)
     update_capi_settings = Signal(QtCore.QVariant)
     update_item_properties = Signal(QtCore.QVariant)
+    update_set_properties = Signal(QtCore.QVariant)
+
+    dispatch_js = Signal(QtCore.QVariant)
 
     @Slot(str)
     def print_to_python(self, text: str) -> None:
@@ -28,6 +33,13 @@ class Bridge(QtCore.QObject):
     def ready(self) -> None:
         for callback in self.on_ready:
             callback()
+        while self.ready_queue:
+            self.ready_queue.pop()()
+
+    @Slot()
+    def save_hook(self) -> None:
+        while self.save_queue:
+            self.save_queue.pop()()
 
     @Slot(QtCore.QVariant)
     def model_loaded(self, data: QtCore.QVariant) -> None:
@@ -54,3 +66,7 @@ class Bridge(QtCore.QObject):
     @Slot(str)
     def set_statusbar(self, text: str) -> None:
         self.window.statusBar().showMessage(text)
+
+    @Slot(QtCore.QVariant)
+    def dispatch_py(self, data: QtCore.QVariant) -> None:
+        self.window.dispatch_process(data)
