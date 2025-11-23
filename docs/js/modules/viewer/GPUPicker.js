@@ -354,6 +354,19 @@ function setupGPUPicker(THREE) {
 	GPUPicker.prototype.pick = function (mouse, raycaster) {
 		this.update();
 		var index = mouse.x + (this.pickingTexture.height - mouse.y) * this.pickingTexture.width;
+
+		if (this.debug) {
+			console.log("pick mouse:", mouse);
+			console.log("pick texture size:", this.pickingTexture.width, this.pickingTexture.height);
+			console.log("pick index:", index);
+			console.log("pick buffer length:", this.pixelBuffer.length);
+			console.log("pick pixel values:",
+				this.pixelBuffer[index * 4 + 0],
+				this.pixelBuffer[index * 4 + 1],
+				this.pixelBuffer[index * 4 + 2],
+				this.pixelBuffer[index * 4 + 3]);
+		}
+
 		//interpret the pixel as an ID
 		var id = (this.pixelBuffer[index * 4 + 2] * 255 * 255) + (this.pixelBuffer[index * 4 + 1] * 255) + (this.pixelBuffer[index * 4 + 0]);
 		// get object with this id in range
