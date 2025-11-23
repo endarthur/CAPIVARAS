@@ -655,7 +655,6 @@ export class ViewerEngine {
         });
 
         this.selectionMarker = new THREE.Mesh(geometry, material);
-        this.selectionMarker.position.copy(point);
 
         // Orient the disk to align with the face normal
         if (normal) {
@@ -663,6 +662,12 @@ export class ViewerEngine {
             const quaternion = new THREE.Quaternion();
             quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal.clone().normalize());
             this.selectionMarker.setRotationFromQuaternion(quaternion);
+
+            // Offset the disk slightly along the normal to sit on top of the surface
+            const offset = normal.clone().normalize().multiplyScalar(0.01);
+            this.selectionMarker.position.copy(point).add(offset);
+        } else {
+            this.selectionMarker.position.copy(point);
         }
 
         this.selectionMarker.renderOrder = 999; // Render on top
