@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="CAPIVARAS - 3D Geological Slope Analysis Tool">
+    <meta name="theme-color" content="#1976d2">
+
+    <title>CAPIVARAS - 3D Geological Analysis</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+    <link rel="apple-touch-icon" href="assets/icon-192.png">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/viewer.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <h1>CAPIVARAS</h1>
+            <p>3D Geological Slope Analysis</p>
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Loading application...</p>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app" class="app-container" style="display: none;">
+
+        <!-- Top Toolbar -->
+        <header class="toolbar">
+            <div class="toolbar-section">
+                <button class="toolbar-btn" id="btn-new" title="New Project">
+                    <span class="icon">📄</span> New
+                </button>
+                <button class="toolbar-btn" id="btn-open" title="Open Project">
+                    <span class="icon">📁</span> Open
+                </button>
+                <button class="toolbar-btn" id="btn-save" title="Save Project">
+                    <span class="icon">💾</span> Save
+                </button>
+            </div>
+
+            <div class="toolbar-section">
+                <button class="toolbar-btn" id="btn-import-mesh" title="Import Mesh">
+                    <span class="icon">📦</span> Import Mesh
+                </button>
+            </div>
+
+            <div class="toolbar-section">
+                <div class="btn-group">
+                    <button class="toolbar-btn active" id="btn-tool-navigate" title="Navigate (default)">
+                        <span class="icon">🔍</span>
+                    </button>
+                    <button class="toolbar-btn" id="btn-tool-plane" title="Paint Planes (Ctrl)">
+                        <span class="icon">🎨</span>
+                    </button>
+                    <button class="toolbar-btn" id="btn-tool-trace" title="Draw Traces (Ctrl+Alt)">
+                        <span class="icon">✏️</span>
+                    </button>
+                    <button class="toolbar-btn" id="btn-tool-measure" title="Measure">
+                        <span class="icon">📏</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="toolbar-section">
+                <select id="camera-mode" class="toolbar-select" title="Camera Mode">
+                    <option value="perspective">Perspective</option>
+                    <option value="orthographic">Orthographic</option>
+                </select>
+            </div>
+
+            <div class="toolbar-section toolbar-right">
+                <button class="toolbar-btn" id="btn-settings" title="Settings">
+                    <span class="icon">⚙️</span>
+                </button>
+                <button class="toolbar-btn" id="btn-help" title="Help">
+                    <span class="icon">❓</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+
+            <!-- Left Sidebar - Layers Panel -->
+            <aside class="sidebar sidebar-left" id="layers-panel">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Layers</h3>
+                        <button class="panel-btn" id="btn-expand-all" title="Expand All">▼</button>
+                        <button class="panel-btn" id="btn-collapse-all" title="Collapse All">▶</button>
+                    </div>
+                    <div class="panel-content">
+                        <div id="layers-tree" class="layers-tree">
+                            <div class="empty-state">
+                                <p>No meshes loaded</p>
+                                <button class="btn-link" id="btn-import-hint">Import a mesh to get started</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- 3D Viewer -->
+            <main class="viewer-container">
+                <div id="viewer" class="viewer"></div>
+
+                <!-- Orientation Display -->
+                <div id="orientation-display" class="orientation-display">
+                    000/00
+                </div>
+
+                <!-- Axis Helper (corner) -->
+                <div id="axis-helper-container" class="axis-helper-container"></div>
+
+                <!-- Status Bar (bottom) -->
+                <div class="status-bar">
+                    <span id="status-text">Ready</span>
+                    <div class="status-right">
+                        <span id="vertex-count">0 vertices</span>
+                        <span class="separator">|</span>
+                        <span id="face-count">0 faces</span>
+                        <span class="separator">|</span>
+                        <span id="mesh-count">0 meshes</span>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Sidebar - Properties Panel -->
+            <aside class="sidebar sidebar-right collapsed" id="properties-panel">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Properties</h3>
+                        <button class="panel-btn" id="btn-close-properties">✕</button>
+                    </div>
+                    <div class="panel-content">
+                        <div id="properties-content">
+                            <p class="empty-state">Select an item to view properties</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+        </div>
+
+    </div>
+
+    <!-- Hidden File Input -->
+    <input type="file" id="file-input-mesh" accept=".ply,.obj" style="display: none;">
+    <input type="file" id="file-input-project" accept=".capivaras,.zip" style="display: none;">
+
+    <!-- Dialogs Container -->
+    <div id="dialogs-container"></div>
+
+    <!-- Three.js from CDN (ES Module) -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <!-- Application Modules -->
+    <script type="module" src="js/main.js"></script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registered:', reg.scope))
+                    .catch(err => console.log('Service Worker registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>

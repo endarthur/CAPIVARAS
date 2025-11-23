@@ -1,0 +1,201 @@
+/* =============================================================================
+   CAPIVARAS - Viewer Styles
+   3D viewer specific styles
+   ============================================================================= */
+
+.viewer-container {
+    flex: 1;
+    position: relative;
+    background-color: #ececec;
+    overflow: hidden;
+}
+
+.viewer {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.viewer canvas {
+    display: block;
+    outline: none;
+}
+
+/* =============================================================================
+   Orientation Display
+   ============================================================================= */
+
+.orientation-display {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    z-index: 10;
+    pointer-events: none;
+    user-select: none;
+    white-space: pre;
+}
+
+/* =============================================================================
+   Axis Helper Container (corner)
+   ============================================================================= */
+
+.axis-helper-container {
+    position: absolute;
+    left: 20px;
+    bottom: 60px;
+    width: 150px;
+    height: 150px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.axis-helper-container canvas {
+    display: block;
+}
+
+/* =============================================================================
+   Status Bar
+   ============================================================================= */
+
+.status-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 28px;
+    background-color: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--spacing-md);
+    font-size: 12px;
+    color: var(--text-secondary);
+    z-index: 5;
+}
+
+.status-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+/* =============================================================================
+   Cursor States (for different tools)
+   ============================================================================= */
+
+.viewer.tool-navigate {
+    cursor: grab;
+}
+
+.viewer.tool-navigate:active {
+    cursor: grabbing;
+}
+
+.viewer.tool-plane {
+    cursor: crosshair;
+}
+
+.viewer.tool-trace {
+    cursor: crosshair;
+}
+
+.viewer.tool-measure {
+    cursor: crosshair;
+}
+
+.viewer.inspecting {
+    cursor: help;
+}
+
+/* =============================================================================
+   Loading Indicator (for viewer)
+   ============================================================================= */
+
+.viewer-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: var(--spacing-lg);
+    border-radius: 8px;
+    text-align: center;
+    z-index: 100;
+}
+
+.viewer-loading .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    margin: 0 auto var(--spacing-md);
+    animation: spin 1s linear infinite;
+}
+
+/* =============================================================================
+   Tooltips & Helpers
+   ============================================================================= */
+
+.plane-helper,
+.brush-helper {
+    pointer-events: none;
+}
+
+/* =============================================================================
+   Performance Warning
+   ============================================================================= */
+
+.performance-warning {
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--warning);
+    color: white;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: 4px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    z-index: 50;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.performance-warning .icon {
+    font-size: 24px;
+}
+
+.performance-warning button {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: 4px;
+    margin-left: var(--spacing-md);
+}
+
+.performance-warning button:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}

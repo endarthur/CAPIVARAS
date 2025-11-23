@@ -1,0 +1,401 @@
+/* =============================================================================
+   CAPIVARAS - Main Styles
+   Pure vanilla CSS, no build step required
+   ============================================================================= */
+
+/* CSS Variables (Theme) */
+:root {
+    --primary-color: #1976d2;
+    --primary-dark: #1565c0;
+    --primary-light: #42a5f5;
+    --accent-color: #ff9800;
+    --background: #f5f5f5;
+    --surface: #ffffff;
+    --surface-hover: #f0f0f0;
+    --border: #e0e0e0;
+    --text-primary: #212121;
+    --text-secondary: #757575;
+    --text-disabled: #bdbdbd;
+    --success: #4caf50;
+    --warning: #ff9800;
+    --error: #f44336;
+
+    /* Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+    --transition-slow: 350ms ease;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.18);
+
+    /* Z-index layers */
+    --z-viewer: 1;
+    --z-sidebar: 10;
+    --z-toolbar: 20;
+    --z-overlay: 100;
+    --z-dialog: 200;
+    --z-tooltip: 300;
+}
+
+/* Dark mode support (respects system preference) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background: #121212;
+        --surface: #1e1e1e;
+        --surface-hover: #2a2a2a;
+        --border: #333333;
+        --text-primary: #ffffff;
+        --text-secondary: #b0b0b0;
+        --text-disabled: #666666;
+    }
+}
+
+/* =============================================================================
+   Reset & Base Styles
+   ============================================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-primary);
+    background-color: var(--background);
+}
+
+button {
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+}
+
+input, select, textarea {
+    font-family: inherit;
+    font-size: inherit;
+}
+
+/* =============================================================================
+   Loading Screen
+   ============================================================================= */
+
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity var(--transition-slow), visibility var(--transition-slow);
+}
+
+.loading-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.loading-content {
+    text-align: center;
+    color: white;
+}
+
+.loading-content h1 {
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: var(--spacing-md);
+    letter-spacing: 2px;
+}
+
+.loading-content p {
+    font-size: 18px;
+    opacity: 0.9;
+    margin-bottom: var(--spacing-xl);
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    margin: var(--spacing-xl) auto;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+/* =============================================================================
+   App Container
+   ============================================================================= */
+
+.app-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* =============================================================================
+   Toolbar
+   ============================================================================= */
+
+.toolbar {
+    height: 48px;
+    background-color: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--spacing-md);
+    gap: var(--spacing-md);
+    z-index: var(--z-toolbar);
+    box-shadow: var(--shadow-sm);
+}
+
+.toolbar-section {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.toolbar-right {
+    margin-left: auto;
+}
+
+.toolbar-btn {
+    height: 32px;
+    padding: 0 var(--spacing-md);
+    border-radius: 4px;
+    background-color: transparent;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    transition: background-color var(--transition-fast);
+}
+
+.toolbar-btn:hover {
+    background-color: var(--surface-hover);
+}
+
+.toolbar-btn:active,
+.toolbar-btn.active {
+    background-color: var(--primary-light);
+    color: white;
+}
+
+.toolbar-btn .icon {
+    font-size: 18px;
+}
+
+.btn-group {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.btn-group .toolbar-btn {
+    border-radius: 0;
+    border-right: 1px solid var(--border);
+}
+
+.btn-group .toolbar-btn:last-child {
+    border-right: none;
+}
+
+.toolbar-select {
+    height: 32px;
+    padding: 0 var(--spacing-md);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background-color: var(--surface);
+    color: var(--text-primary);
+}
+
+/* =============================================================================
+   Main Content
+   ============================================================================= */
+
+.main-content {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+/* =============================================================================
+   Sidebars
+   ============================================================================= */
+
+.sidebar {
+    width: 300px;
+    background-color: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: var(--z-sidebar);
+    transition: transform var(--transition-normal);
+}
+
+.sidebar-right {
+    border-right: none;
+    border-left: 1px solid var(--border);
+}
+
+.sidebar.collapsed {
+    transform: translateX(-100%);
+}
+
+.sidebar-right.collapsed {
+    transform: translateX(100%);
+}
+
+.panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.panel-header {
+    height: 40px;
+    padding: 0 var(--spacing-md);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    background-color: var(--surface-hover);
+}
+
+.panel-header h3 {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+}
+
+.panel-btn {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    color: var(--text-secondary);
+    transition: background-color var(--transition-fast);
+}
+
+.panel-btn:hover {
+    background-color: var(--surface);
+}
+
+.panel-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* =============================================================================
+   Scrollbars
+   ============================================================================= */
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--surface);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-disabled);
+}
+
+/* =============================================================================
+   Empty State
+   ============================================================================= */
+
+.empty-state {
+    padding: var(--spacing-xl);
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.btn-link {
+    color: var(--primary-color);
+    background: none;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    font-size: inherit;
+}
+
+.btn-link:hover {
+    color: var(--primary-dark);
+}
+
+/* =============================================================================
+   Responsive Design
+   ============================================================================= */
+
+@media (max-width: 768px) {
+    .sidebar {
+        position: absolute;
+        height: 100%;
+        z-index: var(--z-overlay);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .toolbar-btn span:not(.icon) {
+        display: none;
+    }
+}
+
+/* =============================================================================
+   Utilities
+   ============================================================================= */
+
+.hidden {
+    display: none !important;
+}
+
+.separator {
+    color: var(--border);
+    margin: 0 var(--spacing-sm);
+}
