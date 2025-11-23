@@ -440,8 +440,14 @@ export class ViewerEngine {
         );
         this.raycaster.setFromCamera(mouseNDC, this.camera);
 
-        // Pick using GPU picker
+        // Pick using GPU picker (renders to offscreen buffer)
         const intersect = this.picker.pick(mouse, this.raycaster);
+
+        // CRITICAL: Reset render target back to screen after GPU picking
+        this.renderer.setRenderTarget(null);
+
+        // Re-render the normal scene to the screen
+        this.render();
 
         if (intersect) {
             console.log('[ViewerEngine] Picked face:', {
