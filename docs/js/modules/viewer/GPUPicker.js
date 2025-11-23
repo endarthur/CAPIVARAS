@@ -419,8 +419,8 @@ function setupGPUPicker(THREE) {
 				__pickingGeometry = object.geometry.__pickingGeometry;
 			} else {
 				geometry = object.geometry;
-				// convert geometry to buffer geometry
-				if (object.geometry instanceof THREE.Geometry) {
+				// convert geometry to buffer geometry (THREE.Geometry was removed in r125+)
+				if (THREE.Geometry && object.geometry instanceof THREE.Geometry) {
 					if (this.debug) console.log("convert geometry to buffer geometry");
 					geometry = new THREE.BufferGeometry().setFromObject(object);
 				}
