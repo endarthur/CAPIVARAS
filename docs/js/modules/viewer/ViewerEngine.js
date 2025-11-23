@@ -52,14 +52,10 @@ export class ViewerEngine {
         this.renderer.setSize(container.clientWidth, container.clientHeight);
         container.appendChild(this.renderer.domElement);
 
-        // Setup controls
+        // Setup controls (event-driven rendering for efficiency)
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.screenSpacePanning = true;
-        this.controls.enableDamping = true;
-        this.controls.dampingFactor = 0.05;
-
-        // Start animation loop for continuous rendering
-        this.animate();
+        this.controls.addEventListener('change', () => this.render());
 
         // Setup lights
         this.scene.add(new THREE.HemisphereLight(0x443333, 0x111122));
@@ -93,16 +89,6 @@ export class ViewerEngine {
 
     render() {
         this.renderer.render(this.scene, this.camera);
-    }
-
-    animate() {
-        requestAnimationFrame(() => this.animate());
-
-        // Update controls (needed for damping)
-        this.controls.update();
-
-        // Render scene
-        this.render();
     }
 
     onWindowResize() {
