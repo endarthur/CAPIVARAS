@@ -55,7 +55,11 @@ export class ViewerEngine {
         // Setup controls
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.screenSpacePanning = true;
-        this.controls.addEventListener('change', () => this.render());
+        this.controls.enableDamping = true;
+        this.controls.dampingFactor = 0.05;
+
+        // Start animation loop for continuous rendering
+        this.animate();
 
         // Setup lights
         this.scene.add(new THREE.HemisphereLight(0x443333, 0x111122));
@@ -89,6 +93,16 @@ export class ViewerEngine {
 
     render() {
         this.renderer.render(this.scene, this.camera);
+    }
+
+    animate() {
+        requestAnimationFrame(() => this.animate());
+
+        // Update controls (needed for damping)
+        this.controls.update();
+
+        // Render scene
+        this.render();
     }
 
     onWindowResize() {
@@ -353,6 +367,10 @@ export class ViewerEngine {
             // Ctrl+click or Ctrl+Alt+click - picking mode
             if (e.ctrlKey || e.metaKey) {
                 e.preventDefault();
+                e.stopPropagation();
+
+                // Disable orbit controls during picking operations
+                this.controls.enabled = false;
 
                 if (e.altKey) {
                     // Ctrl+Alt+click - trace digitizing (future implementation)
@@ -390,6 +408,8 @@ export class ViewerEngine {
             // Ctrl+click (not drag) - face selection for debugging
             if ((e.ctrlKey || e.metaKey) && !this.mouseState.isDragging && !e.altKey) {
                 e.preventDefault();
+                e.stopPropagation();
+
                 const intersect = this.pickFace(e.clientX, e.clientY);
 
                 if (intersect) {
@@ -400,8 +420,13 @@ export class ViewerEngine {
                         'info',
                         3000
                     );
+                } else {
+                    console.log('[ViewerEngine] No face picked at', e.clientX, e.clientY);
                 }
             }
+
+            // Re-enable orbit controls
+            this.controls.enabled = true;
 
             this.mouseState.isDown = false;
             this.mouseState.isDragging = false;
