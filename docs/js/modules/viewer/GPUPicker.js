@@ -312,10 +312,16 @@ function setupGPUPicker(THREE) {
 		this.renderer = renderer;
 		// this.renderer.setRenderTarget(this.pickingTexture)
 		var size = renderer.getSize(_v2);
+		if (this.debug) {
+			console.log("GPUPicker setRenderer - canvas size:", size, "width:", size.width, "height:", size.height);
+		}
 		this.resizeTexture(size.width, size.height);
 		this.needUpdate = true;
 	};
 	GPUPicker.prototype.resizeTexture = function (width, height) {
+		if (this.debug) {
+			console.log("GPUPicker resizeTexture:", width, "x", height, "buffer size:", 4 * width * height);
+		}
 		this.pickingTexture.setSize(width, height);
 		this.pixelBuffer = new Uint8Array(4 * width * height);
 		this.needUpdate = true;
