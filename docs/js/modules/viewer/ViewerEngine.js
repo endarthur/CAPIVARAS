@@ -86,7 +86,7 @@ export class ViewerEngine {
 
         // Setup GPU picker (after renderer is fully initialized)
         this.picker = new this.GPUPicker({
-            debug: false  // Disable debug to reduce console noise
+            debug: true  // Enable debug temporarily to diagnose issue
         });
         this.picker.setRenderer(this.renderer);
         this.picker.setCamera(this.camera);
@@ -451,12 +451,24 @@ export class ViewerEngine {
     updatePicker() {
         if (this.picker && this.scene) {
             console.log('[ViewerEngine] Updating GPU picker');
+            console.log('[ViewerEngine] Main scene children:', this.scene.children.length);
+            this.scene.children.forEach((child, i) => {
+                console.log(`  [${i}] type: ${child.type}, isMesh: ${child.isMesh}, name: ${child.name || 'unnamed'}`);
+            });
 
             // Set a filter to exclude non-pickable objects (lights, helpers, selection marker)
             this.picker.setFilter((object) => {
+                console.log('[Filter] Checking object:', object.type, 'isMesh:', object.isMesh, 'name:', object.name);
                 // Only pick mesh objects, exclude selection marker
-                if (!object.isMesh) return false;
-                if (object === this.selectionMarker) return false;
+                if (!object.isMesh) {
+                    console.log('[Filter] -> Rejected (not a mesh)');
+                    return false;
+                }
+                if (object.name === 'selection_marker') {
+                    console.log('[Filter] -> Rejected (selection marker)');
+                    return false;
+                }
+                console.log('[Filter] -> Accepted');
                 return true;
             });
 
@@ -683,6 +695,7 @@ export class ViewerEngine {
         });
 
         this.selectionMarker = new THREE.Mesh(geometry, material);
+        this.selectionMarker.name = 'selection_marker';
 
         // Orient the disk to align with the face normal
         if (normal) {
