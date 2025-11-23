@@ -218,7 +218,7 @@ User clicks mesh
 
 ---
 
-#### 5. **Extended Undo/Redo System**
+#### 5. **Undo/Redo System** ⭐ IMPORTANT
 ```javascript
 // Command pattern
 class PaintPlaneCommand {
@@ -229,7 +229,7 @@ class PaintPlaneCommand {
 
 **Value:** Confidence to experiment, fix mistakes
 **Effort:** 2-3 days (infrastructure)
-**Current state:** Undo exists for trace digitizing (Backspace for segments, Esc to cancel). Could extend to plane painting and other operations for complete history.
+**Current state:** Partial undo exists ONLY for trace digitizing (Backspace for segments, Esc to cancel). **No undo for plane painting** - this is a gap noted in viewer.js:758. Implementing full undo/redo would greatly improve user confidence.
 
 ---
 
