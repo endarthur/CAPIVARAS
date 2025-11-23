@@ -68,7 +68,13 @@ export class ViewerEngine {
         // Setup controls (event-driven rendering for efficiency)
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.screenSpacePanning = true;
-        this.controls.addEventListener('change', () => this.render());
+        this.controls.addEventListener('change', () => {
+            // Mark picker as needing update when camera moves
+            if (this.picker) {
+                this.picker.needUpdate = true;
+            }
+            this.render();
+        });
 
         // Setup lights
         this.scene.add(new THREE.HemisphereLight(0x443333, 0x111122));
@@ -194,6 +200,13 @@ export class ViewerEngine {
         this.camera.aspect = container.clientWidth / container.clientHeight;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(container.clientWidth, container.clientHeight);
+
+        // Resize picker texture to match new canvas size
+        if (this.picker) {
+            this.picker.resizeTexture(container.clientWidth, container.clientHeight);
+            this.picker.needUpdate = true;
+        }
+
         this.render();
     }
 
@@ -714,52 +727,85 @@ export class ViewerEngine {
     }
 
     /**
-     * Update orientation display during mouse move using raycaster (lighter than GPU picker)
+     * Update orientation display during mouse move using cached GPU picker texture
      * @param {number} x - Mouse X coordinate (client space)
      * @param {number} y - Mouse Y coordinate (client space)
      */
     updateOrientationDisplayLive(x, y) {
         const orientationDisplay = document.getElementById('orientation-display');
-        if (!orientationDisplay) return;
+        if (!orientationDisplay || !this.picker || !this.picker.pixelBuffer) return;
 
         const canvas = this.renderer.domElement;
         const rect = canvas.getBoundingClientRect();
 
-        // Convert to NDC coordinates
-        const mouseNDC = new THREE.Vector2(
-            ((x - rect.left) / rect.width) * 2 - 1,
-            -((y - rect.top) / rect.height) * 2 + 1
-        );
-
-        // Update raycaster
-        this.raycaster.setFromCamera(mouseNDC, this.camera);
-
-        // Get all meshes from the scene
-        const meshes = [];
-        this.scene.traverse((obj) => {
-            if (obj instanceof THREE.Mesh) {
-                meshes.push(obj);
-            }
-        });
-
-        // Raycast to find intersection
-        const intersects = this.raycaster.intersectObjects(meshes, false);
-
-        if (intersects.length > 0) {
-            const face = intersects[0].face;
-            if (face && face.normal) {
-                // Convert Three.js Vector3 to Attitude Vector
-                const attitudeVector = new AttitudeVector([face.normal.x, face.normal.y, face.normal.z]);
-
-                // Calculate dip direction and dip angle
-                const [dipDirection, dip] = spherePlane(attitudeVector);
-
-                // Update orientation display
-                orientationDisplay.textContent = `${Math.round(dipDirection).toString().padStart(3, '0')}/${Math.round(dip).toString().padStart(2, '0')}`;
-            }
-        } else {
-            orientationDisplay.textContent = '000/00';
+        // Update picker texture if needed (camera moved, scene changed, etc.)
+        if (this.picker.needUpdate) {
+            this.picker.update();
         }
+
+        // Convert client coordinates to canvas coordinates
+        const canvasX = Math.floor(x - rect.left);
+        const canvasY = Math.floor(rect.height - (y - rect.top)); // Flip Y for GPU picker
+
+        // Check bounds
+        if (canvasX < 0 || canvasX >= this.picker.pickingTexture.width ||
+            canvasY < 0 || canvasY >= this.picker.pickingTexture.height) {
+            orientationDisplay.textContent = '000/00';
+            return;
+        }
+
+        // Calculate pixel index in buffer
+        const index = canvasX + canvasY * this.picker.pickingTexture.width;
+
+        // Read pixel from cached buffer
+        const r = this.picker.pixelBuffer[index * 4 + 0];
+        const g = this.picker.pixelBuffer[index * 4 + 1];
+        const b = this.picker.pixelBuffer[index * 4 + 2];
+
+        // Decode face ID from RGB
+        const faceId = (b * 255 * 255) + (g * 255) + r;
+
+        if (faceId === 0) {
+            orientationDisplay.textContent = '000/00';
+            return;
+        }
+
+        // Get the object from picker scene
+        const result = this.picker._getObject(this.picker.pickingScene, 0, faceId);
+        const pickerObject = result[1];
+
+        if (!pickerObject || !pickerObject.originalObject) {
+            orientationDisplay.textContent = '000/00';
+            return;
+        }
+
+        // Get the original mesh
+        const originalMesh = pickerObject.originalObject;
+        const geometry = originalMesh.geometry;
+
+        if (!geometry || !geometry.attributes.normal) {
+            orientationDisplay.textContent = '000/00';
+            return;
+        }
+
+        // Calculate which face this is
+        const elementId = faceId - result[0];
+        const faceIndex = elementId;
+
+        // Get face normal from geometry (non-indexed, so 3 vertices per face)
+        const normalAttribute = geometry.attributes.normal;
+        const vertexIndex = faceIndex * 3; // First vertex of the triangle
+
+        const nx = normalAttribute.array[vertexIndex * 3 + 0];
+        const ny = normalAttribute.array[vertexIndex * 3 + 1];
+        const nz = normalAttribute.array[vertexIndex * 3 + 2];
+
+        // Convert to attitude
+        const attitudeVector = new AttitudeVector([nx, ny, nz]);
+        const [dipDirection, dip] = spherePlane(attitudeVector);
+
+        // Update orientation display
+        orientationDisplay.textContent = `${Math.round(dipDirection).toString().padStart(3, '0')}/${Math.round(dip).toString().padStart(2, '0')}`;
     }
 
     setCameraMode(mode) {
