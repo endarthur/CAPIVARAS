@@ -354,7 +354,12 @@ function setupGPUPicker(THREE) {
 	};
 	GPUPicker.prototype.setScene = function (scene) {
 		this.pickingScene = scene.clone();
-		this._processObject(this.pickingScene, 0);
+		if (this.debug) {
+			console.log("GPUPicker setScene - original children:", scene.children.length);
+			console.log("GPUPicker setScene - cloned children:", this.pickingScene.children.length);
+		}
+		var totalElements = this._processObject(this.pickingScene, 0);
+		if (this.debug) console.log("GPUPicker setScene - total elements processed:", totalElements);
 		this.needUpdate = true;
 	};
 
@@ -478,6 +483,10 @@ function setupGPUPicker(THREE) {
 					}
 
 					__pickingGeometry.computeVertexNormals();
+				} else {
+					// Geometry is already non-indexed, use it directly
+					__pickingGeometry = geometry;
+					if (this.debug) console.log("using non-indexed geometry directly");
 				}
 				if (object instanceof THREE.Line && !(object instanceof THREE.LineSegments)) {
 					if (this.debug) console.log("convert Line to LineSegments");
@@ -532,6 +541,10 @@ function setupGPUPicker(THREE) {
 			object.material.setBaseID(baseId);
 			object.material.setPointSize(pointSize + this.pointShell);//make the point a little wider to hit
 			object.material.setPointScale(this.renderer.getSize(_v2).height * this.renderer.getPixelRatio() / 2);
+			if (this.debug) {
+				console.log("GPUPicker _addElementID:", object.name || object.type,
+					"baseId:", baseId, "elementsCount:", object.elementsCount);
+			}
 			return object.elementsCount;
 		}
 		return 0;
