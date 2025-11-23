@@ -379,10 +379,37 @@ function setupGPUPicker(THREE) {
 						if (obj.material instanceof THREE.ShaderMaterial) {
 							// Trigger shader compilation by rendering once
 							obj.material.needsUpdate = true;
+
+							// CRITICAL: Force shader compilation and check for errors
+							const program = this.renderer.properties.get(obj.material).__webglProgram;
+							if (program) {
+								const gl = this.renderer.getContext();
+								if (!gl.getProgramParameter(program.program, gl.LINK_STATUS)) {
+									console.error("Shader program failed to link:");
+									console.error(gl.getProgramInfoLog(program.program));
+								}
+								const vertShader = gl.getShaderParameter(program.vertexShader, gl.COMPILE_STATUS);
+								const fragShader = gl.getShaderParameter(program.fragmentShader, gl.COMPILE_STATUS);
+								console.log("  - Vertex shader compiled:", vertShader);
+								console.log("  - Fragment shader compiled:", fragShader);
+								if (!vertShader) {
+									console.error("Vertex shader error:", gl.getShaderInfoLog(program.vertexShader));
+								}
+								if (!fragShader) {
+									console.error("Fragment shader error:", gl.getShaderInfoLog(program.fragmentShader));
+								}
+							} else {
+								console.log("  - Shader program not yet compiled");
+							}
 						}
 					}
 				});
 			}
+
+			// CRITICAL: Clear render target before rendering
+			const gl = this.renderer.getContext();
+			this.renderer.setRenderTarget(this.pickingTexture);
+			this.renderer.clear();
 
 			this.renderer.render(this.pickingScene, this.camera, this.pickingTexture);
 
