@@ -482,8 +482,22 @@ export class ViewerEngine {
                 console.log(`  [${i}] type: ${child.type}, isMesh: ${child.isMesh}, name: ${child.name || 'unnamed'}`);
             });
 
+            // IMPORTANT: Verify lights were actually removed
+            let hasLights = false;
+            pickableScene.traverse((obj) => {
+                if (obj.isLight) {
+                    hasLights = true;
+                    console.error('[ViewerEngine] ERROR: Light still in scene after cleanup:', obj.type);
+                }
+            });
+
+            if (hasLights) {
+                console.error('[ViewerEngine] ERROR: Scene still has lights! Something went wrong.');
+            }
+
             // Pass the cleaned clone to the picker
-            this.picker.setScene(pickableScene);
+            // Second parameter = true means "already cloned, don't clone again"
+            this.picker.setScene(pickableScene, true);
 
             console.log('[ViewerEngine] GPU picker updated');
         }

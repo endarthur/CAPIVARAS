@@ -447,11 +447,20 @@ function setupGPUPicker(THREE) {
 		}
 
 	};
-	GPUPicker.prototype.setScene = function (scene) {
-		this.pickingScene = scene.clone();
-		if (this.debug) {
-			console.log("GPUPicker setScene - original children:", scene.children.length);
-			console.log("GPUPicker setScene - cloned children:", this.pickingScene.children.length);
+	GPUPicker.prototype.setScene = function (scene, alreadyCloned) {
+		// If the scene was already cloned and cleaned (alreadyCloned = true), use it directly
+		// Otherwise, clone it to avoid modifying the original
+		if (alreadyCloned) {
+			this.pickingScene = scene;
+			if (this.debug) {
+				console.log("GPUPicker setScene - using pre-cleaned scene, children:", scene.children.length);
+			}
+		} else {
+			this.pickingScene = scene.clone();
+			if (this.debug) {
+				console.log("GPUPicker setScene - cloning scene, original children:", scene.children.length);
+				console.log("GPUPicker setScene - cloned children:", this.pickingScene.children.length);
+			}
 		}
 		var totalElements = this._processObject(this.pickingScene, 0);
 		if (this.debug) console.log("GPUPicker setScene - total elements processed:", totalElements);
