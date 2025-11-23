@@ -610,7 +610,7 @@ See **FEASIBILITY_ANALYSIS.md** for detailed migration plan.
 - ✅ Cloud backend stable
 - ✅ Collaboration features working
 - ✅ API adoption ≥ 100 users
-- ✅ Revenue model sustainable
+- ✅ Community engagement active
 
 ---
 
@@ -666,10 +666,10 @@ See **FEASIBILITY_ANALYSIS.md** for detailed migration plan.
 3. Coordinate with maintainers
 4. Submit PR when ready
 
-### Sponsor Development
-- Priority features for sponsors
-- Company logos on homepage
-- Recognition in release notes
+### Support Development
+- Feature requests from active users
+- Community contributions
+- Recognition in release notes and contributors list
 
 ---
 
@@ -696,11 +696,10 @@ This roadmap is a living document and will be updated:
 - **Option B:** Maintain both versions indefinitely
 - **Decision deadline:** End of Phase 3
 
-**Q: Freemium vs. fully open source?**
-- **Option A:** Keep 100% open source (current)
-- **Option B:** Basic version free, advanced features paid
-- **Option C:** Open source + optional cloud features (paid)
-- **Decision deadline:** Before Phase 5
+**Q: Cloud features approach?**
+- **Option A:** Keep 100% open source, all features free (current)
+- **Option B:** Optional cloud backend for collaboration (self-hosted or community-hosted)
+- **Decision:** Maintain 100% open source - this is an academic project delivered as-is
 
 **Q: Native mobile apps vs. PWA only?**
 - **Option A:** PWA only (web standards)

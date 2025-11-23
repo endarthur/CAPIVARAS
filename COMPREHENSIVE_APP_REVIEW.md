@@ -218,7 +218,7 @@ User clicks mesh
 
 ---
 
-#### 5. **Undo/Redo Stack** ⭐ CRITICAL
+#### 5. **Extended Undo/Redo System**
 ```javascript
 // Command pattern
 class PaintPlaneCommand {
@@ -229,7 +229,7 @@ class PaintPlaneCommand {
 
 **Value:** Confidence to experiment, fix mistakes
 **Effort:** 2-3 days (infrastructure)
-**Current gap:** No undo! Users are afraid to mess up.
+**Current state:** Undo exists for trace digitizing (Backspace for segments, Esc to cancel). Could extend to plane painting and other operations for complete history.
 
 ---
 
@@ -677,38 +677,25 @@ When marketing/presenting CAPIVARAS, emphasize:
 
 ---
 
-## 💰 Monetization Potential
+## 🎓 Project Nature & Distribution
 
-**Current:** Free, open source
+**Current:** Free, open source academic project
 
-**Options:**
+**Philosophy:**
+- 100% open source (GPL-3.0)
+- Academic research output
+- Delivered as-is to the community
+- Community-driven development
+- No commercial support obligations
 
-**1. Dual License**
-- Core: GPL (free, open source)
-- Pro: Commercial license for enterprise
-- Premium features: Cloud sync, collaboration, support
+**Community contributions welcome:**
+- Bug reports and fixes
+- Feature suggestions
+- Code contributions
+- Documentation improvements
+- Academic collaborations
 
-**2. SaaS Model**
-- Free tier: Local use, basic features
-- Pro tier ($20/month): Cloud storage, collaboration
-- Enterprise: Custom deployment, API access, support
-
-**3. Consulting Services**
-- Custom development
-- Training workshops
-- Technical support contracts
-
-**4. Marketplace**
-- Plugins/extensions
-- Analysis templates
-- Mesh libraries
-
-**Market size:** Niche but valuable
-- Mining industry: $Billions
-- Geotechnical consulting: $Millions
-- Academic: Small but influential
-
-**Competitive advantage:** Open source + specialized = hard to replicate
+**Impact focus:** Enable research and education in structural geology worldwide
 
 ---
 
