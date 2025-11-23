@@ -19,14 +19,16 @@ function setupGPUPicker(THREE) {
 			"uniform float baseId;",
 			"",
 			"varying vec4 worldId;",
+			"varying vec2 vId;",  // DEBUG: pass id to fragment shader
 			"",
 			"void main() {",
+			"  vId = id;",  // DEBUG
 			"  vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );",
 			"  gl_PointSize = size * ( scale / length( mvPosition.xyz ) );",
 			"  float i = baseId + id.x;",
 			"  vec3 a = fract(vec3(1.0/255.0, 1.0/(255.0*255.0), 1.0/(255.0*255.0*255.0)) * i);",
 			"  a -= a.xxy * vec3(0.0, 1.0/255.0, 1.0/255.0);",
-			"  worldId = vec4(a, 1);",
+			"  worldId = vec4(a, 1.0);",
 			"  gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
 			"}"
 		].join("\n"),
@@ -37,8 +39,12 @@ function setupGPUPicker(THREE) {
 			"#endif\n",
 			"",
 			"varying vec4 worldId;",
+			"varying vec2 vId;",  // DEBUG
 			"",
 			"void main() {",
+			"  // DEBUG: visualize if shader is working at all",
+			"  // If you see red/green gradients, shader works but id might be wrong",
+			"  // gl_FragColor = vec4(vId.x / 10000.0, vId.y / 10000.0, 0.0, 1.0);",
 			"  gl_FragColor = worldId;",
 			"}"
 		].join("\n")
@@ -520,10 +526,12 @@ function setupGPUPicker(THREE) {
 				__pickingGeometry.setAttribute('id', ids);
 				__pickingGeometry.elementsCount = vertexCount / units;
 				if (this.debug) {
-					console.log("GPUPicker id attribute sample (first 10 values):",
-						ids.array.slice(0, 10));
-					console.log("GPUPicker id attribute sample (element 1000):",
-						ids.array.slice(6000, 6010));
+					console.log("GPUPicker id attribute:");
+					console.log("  - Total vertices:", vertexCount, "units:", units, "elements:", vertexCount / units);
+					console.log("  - ID array length:", ids.array.length);
+					console.log("  - First 10 ID values:", ids.array.slice(0, 10));
+					console.log("  - ID values around element 1000:", ids.array.slice(6000, 6010));
+					console.log("  - Last 10 ID values:", ids.array.slice(-10));
 				}
 				//cache __pickingGeometry inside geometry
 				object.geometry.__pickingGeometry = __pickingGeometry;

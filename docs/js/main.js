@@ -359,10 +359,10 @@ window.addEventListener('error', (event) => {
     }
 });
 
-// Prevent accidental navigation
-window.addEventListener('beforeunload', (event) => {
-    if (window.app && window.app.project && window.app.project.hasUnsavedChanges()) {
-        event.preventDefault();
-        event.returnValue = '';
-    }
-});
+// Prevent accidental navigation (disabled during development)
+// window.addEventListener('beforeunload', (event) => {
+//     if (window.app && window.app.project && window.app.project.hasUnsavedChanges()) {
+//         event.preventDefault();
+//         event.returnValue = '';
+//     }
+// });
