@@ -17,6 +17,7 @@ function mod(n, m) {
 
 const sqrt2 = Math.sqrt(2.);
 
+function Vector(x) {
         this.x = x;
     }
 
