@@ -410,12 +410,21 @@ function setupGPUPicker(THREE) {
 				});
 			}
 
-			// CRITICAL: Clear render target before rendering
+			// CRITICAL: Set clear color to black (0,0,0) for picker
+			// This way empty pixels decode to face ID 0 instead of a bogus ID
+			const oldClearColor = this.renderer.getClearColor(new THREE.Color());
+			const oldClearAlpha = this.renderer.getClearAlpha();
+			this.renderer.setClearColor(0x000000, 1.0);
+
+			// Clear render target before rendering
 			this.renderer.setRenderTarget(this.pickingTexture);
 			this.renderer.clear();
 
 			// Render picking scene to texture
 			this.renderer.render(this.pickingScene, this.camera, this.pickingTexture);
+
+			// Restore clear color
+			this.renderer.setClearColor(oldClearColor, oldClearAlpha);
 
 			// DEBUG: Check for WebGL errors after rendering
 			if (this.debug) {
