@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { setupGPUPicker, GPUPicker } from './GPUPicker.js';
 
 export class ViewerEngine {
     constructor(app) {
@@ -16,10 +17,16 @@ export class ViewerEngine {
         this.renderer = null;
         this.controls = null;
         this.meshes = [];
+        this.picker = null;
+        this.raycaster = new THREE.Raycaster();
+        this.selectionMarker = null;
 
         // Initialize loaders
         this.plyLoader = new PLYLoader();
         this.objLoader = new OBJLoader();
+
+        // Setup GPUPicker extensions
+        setupGPUPicker(THREE);
     }
 
     async init(container) {
@@ -54,6 +61,16 @@ export class ViewerEngine {
         this.scene.add(new THREE.HemisphereLight(0x443333, 0x111122));
         this.addDirectionalLight(1, 1, 1, 0xffffff, 1.35);
         this.addDirectionalLight(0.5, 1, -1, 0xffffff, 1);
+
+        // Setup GPU picker
+        this.picker = new THREE.GPUPicker({
+            renderer: this.renderer,
+            debug: false
+        });
+        this.picker.setCamera(this.camera);
+
+        // Setup mouse event handlers for picking
+        this.setupMouseHandlers();
 
         // Handle window resize
         window.addEventListener('resize', () => this.onWindowResize());
@@ -141,6 +158,9 @@ export class ViewerEngine {
             };
 
             this.meshes.push(meshObject);
+
+            // Update GPU picker
+            this.updatePicker();
 
             // Update status bar
             this.updateStats();
@@ -298,8 +318,166 @@ export class ViewerEngine {
             }
         });
         this.meshes = [];
+        this.updatePicker();
         this.updateStats();
         this.render();
+    }
+
+    updatePicker() {
+        if (this.picker && this.scene) {
+            this.picker.setScene(this.scene);
+            console.log('[ViewerEngine] GPU picker updated');
+        }
+    }
+
+    /**
+     * Setup mouse event handlers for face picking
+     */
+    setupMouseHandlers() {
+        const canvas = this.renderer.domElement;
+
+        // Track mouse state
+        this.mouseState = {
+            isDown: false,
+            startX: 0,
+            startY: 0,
+            isDragging: false
+        };
+
+        canvas.addEventListener('mousedown', (e) => {
+            this.mouseState.isDown = true;
+            this.mouseState.startX = e.clientX;
+            this.mouseState.startY = e.clientY;
+            this.mouseState.isDragging = false;
+
+            // Ctrl+click or Ctrl+Alt+click - picking mode
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+
+                if (e.altKey) {
+                    // Ctrl+Alt+click - trace digitizing (future implementation)
+                    console.log('[ViewerEngine] Trace digitizing mode - not yet implemented');
+                } else {
+                    // Ctrl+drag - painting mode (handled in mousemove)
+                    console.log('[ViewerEngine] Paint mode ready');
+                }
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!this.mouseState.isDown) return;
+
+            // Check if we've moved enough to be considered dragging
+            const dx = e.clientX - this.mouseState.startX;
+            const dy = e.clientY - this.mouseState.startY;
+            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+                this.mouseState.isDragging = true;
+            }
+
+            // Ctrl+drag - painting
+            if ((e.ctrlKey || e.metaKey) && this.mouseState.isDragging && !e.altKey) {
+                e.preventDefault();
+                const intersect = this.pickFace(e.clientX, e.clientY);
+
+                if (intersect) {
+                    // Future: Paint the face
+                    console.log('[ViewerEngine] Painting face - not yet implemented');
+                }
+            }
+        });
+
+        canvas.addEventListener('mouseup', (e) => {
+            // Ctrl+click (not drag) - face selection for debugging
+            if ((e.ctrlKey || e.metaKey) && !this.mouseState.isDragging && !e.altKey) {
+                e.preventDefault();
+                const intersect = this.pickFace(e.clientX, e.clientY);
+
+                if (intersect) {
+                    this.showSelectionMarker(intersect.point);
+                    this.app.ui.showNotification(
+                        'Face Selected',
+                        `Object: ${intersect.object.name}, Face: ${Math.floor(intersect.index / 3)}`,
+                        'info',
+                        3000
+                    );
+                }
+            }
+
+            this.mouseState.isDown = false;
+            this.mouseState.isDragging = false;
+        });
+
+        console.log('[ViewerEngine] Mouse handlers setup - Ctrl+click to select, Ctrl+drag to paint (coming soon)');
+    }
+
+    /**
+     * Pick a face at the given mouse coordinates
+     * @param {number} x - Mouse X coordinate (canvas space)
+     * @param {number} y - Mouse Y coordinate (canvas space)
+     * @returns {Object|null} - Intersection object or null
+     */
+    pickFace(x, y) {
+        if (!this.picker) return null;
+
+        const mouse = { x: Math.floor(x), y: Math.floor(y) };
+
+        // Update raycaster
+        const rect = this.renderer.domElement.getBoundingClientRect();
+        const mouseNDC = new THREE.Vector2(
+            ((x - rect.left) / rect.width) * 2 - 1,
+            -((y - rect.top) / rect.height) * 2 + 1
+        );
+        this.raycaster.setFromCamera(mouseNDC, this.camera);
+
+        // Pick using GPU picker
+        const intersect = this.picker.pick(mouse, this.raycaster);
+
+        if (intersect) {
+            console.log('[ViewerEngine] Picked face:', {
+                object: intersect.object.name,
+                faceIndex: intersect.index / 3,
+                point: intersect.point
+            });
+        }
+
+        return intersect;
+    }
+
+    /**
+     * Show a visual marker at the selected point
+     * @param {THREE.Vector3} point - The 3D point to mark
+     */
+    showSelectionMarker(point) {
+        // Remove existing marker
+        this.hideSelectionMarker();
+
+        // Create a small sphere at the picked point
+        const geometry = new THREE.SphereGeometry(0.05, 16, 16);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0xff0000,
+            transparent: true,
+            opacity: 0.8
+        });
+
+        this.selectionMarker = new THREE.Mesh(geometry, material);
+        this.selectionMarker.position.copy(point);
+        this.scene.add(this.selectionMarker);
+        this.render();
+
+        console.log('[ViewerEngine] Selection marker shown at:', point);
+    }
+
+    /**
+     * Hide the selection marker
+     */
+    hideSelectionMarker() {
+        if (this.selectionMarker) {
+            this.scene.remove(this.selectionMarker);
+            this.selectionMarker.geometry.dispose();
+            this.selectionMarker.material.dispose();
+            this.selectionMarker = null;
+            this.render();
+        }
     }
 
     setCameraMode(mode) {
