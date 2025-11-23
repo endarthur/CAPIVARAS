@@ -86,7 +86,7 @@ export class ViewerEngine {
 
         // Setup GPU picker (after renderer is fully initialized)
         this.picker = new this.GPUPicker({
-            debug: true
+            debug: false  // Disable debug to reduce console noise
         });
         this.picker.setRenderer(this.renderer);
         this.picker.setCamera(this.camera);
@@ -452,40 +452,18 @@ export class ViewerEngine {
         if (this.picker && this.scene) {
             console.log('[ViewerEngine] Updating GPU picker');
 
-            // IMPORTANT: Don't clone the entire scene - it includes lights which mess up the traversal
-            // Instead, create a clean scene with ONLY the mesh objects
-
-            // Create a temporary scene with ONLY mesh objects
-            const pickableScene = new THREE.Scene();
-
-            // Add only mesh objects from the main scene
-            // NOTE: Since meshes are direct children of scene (no parent hierarchy),
-            // we can just clone and add them directly
-            this.scene.traverse((object) => {
-                if (object.isMesh && object !== this.selectionMarker) {
-                    // Clone the mesh for picking
-                    const pickableMesh = object.clone(false); // false = don't clone children
-
-                    // Copy transform from original mesh
-                    // Since meshes are direct children of scene, we can just copy local transform
-                    pickableMesh.position.copy(object.position);
-                    pickableMesh.rotation.copy(object.rotation);
-                    pickableMesh.scale.copy(object.scale);
-
-                    // Let Three.js handle matrix updates automatically
-                    pickableMesh.matrixAutoUpdate = true;
-                    pickableMesh.updateMatrix();
-                    pickableMesh.updateMatrixWorld(true);
-
-                    pickableScene.add(pickableMesh);
-                    console.log('[ViewerEngine] Added mesh:', object.name,
-                        'vertices:', pickableMesh.geometry.attributes.position.count);
-                }
+            // Set a filter to exclude non-pickable objects (lights, helpers, selection marker)
+            this.picker.setFilter((object) => {
+                // Only pick mesh objects, exclude selection marker
+                if (!object.isMesh) return false;
+                if (object === this.selectionMarker) return false;
+                return true;
             });
 
-            console.log('[ViewerEngine] Pickable scene has', pickableScene.children.length, 'mesh objects');
-            this.picker.setScene(pickableScene);
-            console.log('[ViewerEngine] GPU picker updated');
+            // Clone the entire scene (preserves hierarchy and transforms)
+            // The filter will exclude lights and other non-pickable objects during processing
+            this.picker.setScene(this.scene);
+            console.log('[ViewerEngine] GPU picker updated with scene');
         }
     }
 
