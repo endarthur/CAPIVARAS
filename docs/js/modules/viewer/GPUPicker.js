@@ -151,7 +151,7 @@ function setupGPUPicker(THREE) {
 		return function (elID, raycaster) {
 			var geometry = this.geometry;
 			var attributes = geometry.attributes;
-			inverseMatrix.getInverse(this.matrixWorld);
+			inverseMatrix.copy(this.matrixWorld).invert();
 			ray.copy(raycaster.ray).applyMatrix4(inverseMatrix);
 			var a, b, c;
 			if (geometry.index !== null) {
@@ -191,7 +191,7 @@ function setupGPUPicker(THREE) {
 		var interSegment = new THREE.Vector3();
 		var interRay = new THREE.Vector3();
 		return function (elID, raycaster) {
-			inverseMatrix.getInverse(this.matrixWorld);
+			inverseMatrix.copy(this.matrixWorld).invert();
 			ray.copy(raycaster.ray).applyMatrix4(inverseMatrix);
 			var geometry = this.geometry;
 			if (geometry instanceof THREE.BufferGeometry) {
@@ -242,7 +242,7 @@ function setupGPUPicker(THREE) {
 			var object = this;
 			var geometry = object.geometry;
 
-			inverseMatrix.getInverse(this.matrixWorld);
+			inverseMatrix.copy(this.matrixWorld).invert();
 			ray.copy(raycaster.ray).applyMatrix4(inverseMatrix);
 			var position = new THREE.Vector3();
 
