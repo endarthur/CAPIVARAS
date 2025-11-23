@@ -451,31 +451,41 @@ export class ViewerEngine {
     updatePicker() {
         if (this.picker && this.scene) {
             console.log('[ViewerEngine] Updating GPU picker');
-            console.log('[ViewerEngine] Main scene children:', this.scene.children.length);
-            this.scene.children.forEach((child, i) => {
+
+            // Clone the entire scene to preserve hierarchy and transforms
+            const pickableScene = this.scene.clone();
+
+            console.log('[ViewerEngine] Cloned scene, children before cleanup:', pickableScene.children.length);
+
+            // Remove non-mesh objects from the CLONED scene
+            const toRemove = [];
+            pickableScene.traverse((object) => {
+                // Remove lights
+                if (object.isLight) {
+                    toRemove.push(object);
+                }
+                // Remove selection marker
+                else if (object.name === 'selection_marker') {
+                    toRemove.push(object);
+                }
+            });
+
+            console.log('[ViewerEngine] Removing', toRemove.length, 'non-pickable objects from clone');
+            toRemove.forEach(obj => {
+                if (obj.parent) {
+                    obj.parent.remove(obj);
+                }
+            });
+
+            console.log('[ViewerEngine] Pickable scene children after cleanup:', pickableScene.children.length);
+            pickableScene.children.forEach((child, i) => {
                 console.log(`  [${i}] type: ${child.type}, isMesh: ${child.isMesh}, name: ${child.name || 'unnamed'}`);
             });
 
-            // Set a filter to exclude non-pickable objects (lights, helpers, selection marker)
-            this.picker.setFilter((object) => {
-                console.log('[Filter] Checking object:', object.type, 'isMesh:', object.isMesh, 'name:', object.name);
-                // Only pick mesh objects, exclude selection marker
-                if (!object.isMesh) {
-                    console.log('[Filter] -> Rejected (not a mesh)');
-                    return false;
-                }
-                if (object.name === 'selection_marker') {
-                    console.log('[Filter] -> Rejected (selection marker)');
-                    return false;
-                }
-                console.log('[Filter] -> Accepted');
-                return true;
-            });
+            // Pass the cleaned clone to the picker
+            this.picker.setScene(pickableScene);
 
-            // Clone the entire scene (preserves hierarchy and transforms)
-            // The filter will exclude lights and other non-pickable objects during processing
-            this.picker.setScene(this.scene);
-            console.log('[ViewerEngine] GPU picker updated with scene');
+            console.log('[ViewerEngine] GPU picker updated');
         }
     }
 
