@@ -791,6 +791,14 @@ export class ViewerEngine {
             // Update orientation display
             orientationDisplay.textContent = `${Math.round(dipDirection).toString().padStart(3, '0')}/${Math.round(dip).toString().padStart(2, '0')}`;
         } else {
+            // DEBUG: Log why we're not getting a hit
+            if (!intersect) {
+                console.log('[updateOrientationDisplayLive] No intersect');
+            } else if (!intersect.face) {
+                console.log('[updateOrientationDisplayLive] No face on intersect:', intersect);
+            } else if (!intersect.face.normal) {
+                console.log('[updateOrientationDisplayLive] No normal on face:', intersect.face);
+            }
             orientationDisplay.textContent = '000/00';
         }
     }
