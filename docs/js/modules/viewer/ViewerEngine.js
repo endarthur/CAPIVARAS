@@ -65,7 +65,7 @@ export class ViewerEngine {
         // Setup GPU picker
         this.picker = new this.GPUPicker({
             renderer: this.renderer,
-            debug: false
+            debug: true
         });
         this.picker.setCamera(this.camera);
 
@@ -325,6 +325,8 @@ export class ViewerEngine {
 
     updatePicker() {
         if (this.picker && this.scene) {
+            console.log('[ViewerEngine] Updating GPU picker with scene:', this.scene);
+            console.log('[ViewerEngine] Scene has children:', this.scene.children.length);
             this.picker.setScene(this.scene);
             console.log('[ViewerEngine] GPU picker updated');
         }
@@ -428,12 +430,20 @@ export class ViewerEngine {
      * @returns {Object|null} - Intersection object or null
      */
     pickFace(x, y) {
-        if (!this.picker) return null;
+        if (!this.picker) {
+            console.log('[ViewerEngine] No picker available');
+            return null;
+        }
 
-        const mouse = { x: Math.floor(x), y: Math.floor(y) };
+        const rect = this.renderer.domElement.getBoundingClientRect();
+        const mouse = {
+            x: Math.floor(x - rect.left),
+            y: Math.floor(rect.height - (y - rect.top)) // Flip Y for GPU picker
+        };
+
+        console.log('[ViewerEngine] Picking at client:', x, y, 'canvas:', mouse.x, mouse.y, 'rect:', rect);
 
         // Update raycaster
-        const rect = this.renderer.domElement.getBoundingClientRect();
         const mouseNDC = new THREE.Vector2(
             ((x - rect.left) / rect.width) * 2 - 1,
             -((y - rect.top) / rect.height) * 2 + 1
@@ -455,6 +465,8 @@ export class ViewerEngine {
                 faceIndex: intersect.index / 3,
                 point: intersect.point
             });
+        } else {
+            console.log('[ViewerEngine] No intersection found');
         }
 
         return intersect;
