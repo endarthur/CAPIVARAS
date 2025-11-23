@@ -53,9 +53,7 @@ function setupGPUPicker(THREE) {
 				scale: { value: 400 }
 			},
 			vertexShader: FaceIDShader.vertexShader,
-			fragmentShader: FaceIDShader.fragmentShader,
-			// Ensure material renders correctly
-			side: THREE.DoubleSide
+			fragmentShader: FaceIDShader.fragmentShader
 		});
 
 		// Add custom methods to the instance
