@@ -48,21 +48,14 @@ function setupGPUPicker(THREE) {
 	var FaceIDMaterial = function () {
 		var material = new THREE.ShaderMaterial({
 			uniforms: {
-				baseId: {
-					type: "f",
-					value: 0
-				},
-				size: {
-					type: "f",
-					value: 0.01,
-				},
-				scale: {
-					type: "f",
-					value: 400,
-				}
+				baseId: { value: 0 },
+				size: { value: 0.01 },
+				scale: { value: 400 }
 			},
 			vertexShader: FaceIDShader.vertexShader,
-			fragmentShader: FaceIDShader.fragmentShader
+			fragmentShader: FaceIDShader.fragmentShader,
+			// Ensure material renders correctly
+			side: THREE.DoubleSide
 		});
 
 		// Add custom methods to the instance
@@ -526,6 +519,12 @@ function setupGPUPicker(THREE) {
 				}
 				__pickingGeometry.setAttribute('id', ids);
 				__pickingGeometry.elementsCount = vertexCount / units;
+				if (this.debug) {
+					console.log("GPUPicker id attribute sample (first 10 values):",
+						ids.array.slice(0, 10));
+					console.log("GPUPicker id attribute sample (element 1000):",
+						ids.array.slice(6000, 6010));
+				}
 				//cache __pickingGeometry inside geometry
 				object.geometry.__pickingGeometry = __pickingGeometry;
 			}
