@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
-import { setupGPUPicker, GPUPicker } from './GPUPicker.js';
+import { setupGPUPicker } from './GPUPicker.js';
 
 export class ViewerEngine {
     constructor(app) {

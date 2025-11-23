@@ -507,6 +507,6 @@ function setupGPUPicker(THREE) {
 })(THREE);
 }
 
-// Export both the setup function and the GPUPicker class reference
+// Export the setup function only
+// After calling setupGPUPicker(THREE), access GPUPicker via THREE.GPUPicker
 export { setupGPUPicker };
-export const GPUPicker = THREE.GPUPicker;
