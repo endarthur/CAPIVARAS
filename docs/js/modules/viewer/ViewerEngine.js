@@ -22,6 +22,9 @@ export class ViewerEngine {
         this.raycaster = new THREE.Raycaster();
         this.selectionMarker = null;
 
+        // Tool state
+        this.activeTool = 'hand'; // 'hand' or 'loupe'
+
         // Compass (axis helper)
         this.compassScene = null;
         this.compassCamera = null;
@@ -474,7 +477,13 @@ export class ViewerEngine {
             this.mouseState.startY = e.clientY;
             this.mouseState.isDragging = false;
 
-            // Ctrl+click or Ctrl+Alt+click - picking mode
+            // Loupe tool: disable camera controls
+            if (this.activeTool === 'loupe' && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                this.controls.enabled = false;
+            }
+
+            // Ctrl+click or Ctrl+Alt+click - picking/painting mode from any tool
             if (e.ctrlKey || e.metaKey) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -493,8 +502,8 @@ export class ViewerEngine {
         });
 
         canvas.addEventListener('mousemove', (e) => {
-            // Live orientation display update (using raycaster for performance)
-            if (!this.mouseState.isDown && !e.ctrlKey && !e.metaKey) {
+            // Loupe tool: show live orientation display
+            if (this.activeTool === 'loupe' && !this.mouseState.isDown && !e.ctrlKey && !e.metaKey) {
                 this.updateOrientationDisplayLive(e.clientX, e.clientY);
             }
 
@@ -507,7 +516,7 @@ export class ViewerEngine {
                 this.mouseState.isDragging = true;
             }
 
-            // Ctrl+drag - painting
+            // Ctrl+drag - painting (from any tool)
             if ((e.ctrlKey || e.metaKey) && this.mouseState.isDragging && !e.altKey) {
                 e.preventDefault();
                 const intersect = this.pickFace(e.clientX, e.clientY);
@@ -520,8 +529,12 @@ export class ViewerEngine {
         });
 
         canvas.addEventListener('mouseup', (e) => {
-            // Ctrl+click (not drag) - face selection for debugging
-            if ((e.ctrlKey || e.metaKey) && !this.mouseState.isDragging && !e.altKey) {
+            const isModifierClick = e.ctrlKey || e.metaKey;
+            const isLoupeClick = this.activeTool === 'loupe' && !isModifierClick;
+
+            // Loupe tool: click to select face
+            // OR Ctrl+click from any tool: select face
+            if ((isLoupeClick || isModifierClick) && !this.mouseState.isDragging && !e.altKey) {
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -536,14 +549,24 @@ export class ViewerEngine {
                 }
             }
 
-            // Re-enable orbit controls
-            this.controls.enabled = true;
+            // Re-enable orbit controls (except in loupe mode)
+            if (this.activeTool === 'hand') {
+                this.controls.enabled = true;
+            }
 
             this.mouseState.isDown = false;
             this.mouseState.isDragging = false;
         });
 
-        console.log('[ViewerEngine] Mouse handlers setup - Ctrl+click to select, Ctrl+drag to paint (coming soon)');
+        // Keyboard shortcut: Space to toggle between hand and loupe
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+                e.preventDefault();
+                this.toggleTool();
+            }
+        });
+
+        console.log('[ViewerEngine] Mouse handlers setup - Space to toggle tool, Loupe: click to select, Ctrl+drag to paint');
     }
 
     /**
@@ -770,6 +793,49 @@ export class ViewerEngine {
     setCameraMode(mode) {
         // TODO: Implement perspective/orthographic toggle
         console.log('[ViewerEngine] Camera mode:', mode);
+    }
+
+    /**
+     * Set active tool (hand or loupe)
+     */
+    setTool(tool) {
+        if (tool !== 'hand' && tool !== 'loupe') {
+            console.error('[ViewerEngine] Invalid tool:', tool);
+            return;
+        }
+
+        this.activeTool = tool;
+
+        // Update controls state based on tool
+        if (tool === 'hand') {
+            this.controls.enabled = true;
+            // Clear orientation display when switching to hand
+            const orientationDisplay = document.getElementById('orientation-display');
+            if (orientationDisplay) {
+                orientationDisplay.textContent = '000/00';
+            }
+        } else if (tool === 'loupe') {
+            this.controls.enabled = false;
+        }
+
+        // Update cursor
+        const canvas = this.renderer.domElement;
+        canvas.style.cursor = tool === 'loupe' ? 'crosshair' : 'grab';
+
+        // Notify UI
+        if (this.app && this.app.tools) {
+            this.app.tools.setActiveTool(tool);
+        }
+
+        console.log('[ViewerEngine] Tool changed to:', tool);
+    }
+
+    /**
+     * Toggle between hand and loupe tools
+     */
+    toggleTool() {
+        const newTool = this.activeTool === 'hand' ? 'loupe' : 'hand';
+        this.setTool(newTool);
     }
 
     toggleWireframe() {
