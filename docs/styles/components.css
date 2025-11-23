@@ -90,7 +90,16 @@
     align-items: center;
     justify-content: center;
     z-index: var(--z-dialog);
-    animation: fadeIn var(--transition-fast);
+    opacity: 0;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dialog-overlay.dialog-show {
+    opacity: 1;
+}
+
+.dialog-overlay.dialog-hide {
+    opacity: 0;
 }
 
 @keyframes fadeIn {
@@ -107,7 +116,19 @@
     max-height: 80vh;
     display: flex;
     flex-direction: column;
-    animation: slideUp var(--transition-normal);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dialog-show .dialog {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.dialog-hide .dialog {
+    opacity: 0;
+    transform: translateY(20px);
 }
 
 @keyframes slideUp {
@@ -142,6 +163,11 @@
     align-items: center;
     justify-content: center;
     color: var(--text-secondary);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    border: none;
+    background: transparent;
     transition: background-color var(--transition-fast);
 }
 
@@ -149,10 +175,36 @@
     background-color: var(--surface-hover);
 }
 
-.dialog-body {
+.dialog-content {
     padding: var(--spacing-lg);
     overflow-y: auto;
     flex: 1;
+}
+
+.dialog-content p {
+    margin: 0 0 var(--spacing-md) 0;
+    line-height: 1.6;
+}
+
+.dialog-content p:last-child {
+    margin-bottom: 0;
+}
+
+.dialog-input {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background-color: var(--surface);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 14px;
+    transition: border-color var(--transition-fast);
+}
+
+.dialog-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
 }
 
 .dialog-footer {
@@ -340,10 +392,18 @@
    Notifications
    ============================================================================= */
 
-.notification {
+.notification-container {
     position: fixed;
     top: 60px;
     right: var(--spacing-lg);
+    z-index: var(--z-overlay);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    pointer-events: none;
+}
+
+.notification {
     background-color: var(--surface);
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -351,42 +411,83 @@
     padding: var(--spacing-md);
     min-width: 300px;
     max-width: 400px;
-    z-index: var(--z-overlay);
-    animation: slideInRight var(--transition-normal);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    pointer-events: all;
+    opacity: 0;
+    transform: translateX(100px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@keyframes slideInRight {
-    from {
-        opacity: 0;
-        transform: translateX(100px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+.notification-show {
+    opacity: 1;
+    transform: translateX(0);
 }
 
-.notification.success {
+.notification-hide {
+    opacity: 0;
+    transform: translateX(100px);
+}
+
+.notification-info {
+    border-left: 4px solid var(--primary-color);
+}
+
+.notification-success {
     border-left: 4px solid var(--success);
 }
 
-.notification.warning {
+.notification-warning {
     border-left: 4px solid var(--warning);
 }
 
-.notification.error {
+.notification-error {
     border-left: 4px solid var(--error);
 }
 
-.notification-header {
+.notification-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--spacing-sm);
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.notification-info .notification-icon {
+    color: var(--primary-color);
+}
+
+.notification-success .notification-icon {
+    color: var(--success);
+}
+
+.notification-warning .notification-icon {
+    color: var(--warning);
+}
+
+.notification-error .notification-icon {
+    color: var(--error);
+}
+
+.notification-content {
+    flex: 1;
+    min-width: 0;
 }
 
 .notification-title {
     font-weight: 600;
+    margin-bottom: var(--spacing-xs);
+    color: var(--text-primary);
+}
+
+.notification-message {
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.4;
 }
 
 .notification-close {
@@ -397,13 +498,13 @@
     align-items: center;
     justify-content: center;
     color: var(--text-secondary);
+    font-size: 20px;
+    line-height: 1;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
 }
 
 .notification-close:hover {
     background-color: var(--surface-hover);
-}
-
-.notification-body {
-    color: var(--text-secondary);
-    font-size: 13px;
 }

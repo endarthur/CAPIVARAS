@@ -87,12 +87,17 @@ export class ViewerEngine {
 
         try {
             let geometry;
+            let originalCenter = null;
 
             // Load based on file type
             if (meshData.type === 'ply') {
-                geometry = await this.loadPLY(meshData.url);
+                const result = await this.loadPLY(meshData.url);
+                geometry = result.geometry;
+                originalCenter = result.originalCenter;
             } else if (meshData.type === 'obj') {
-                geometry = await this.loadOBJ(meshData.url);
+                const result = await this.loadOBJ(meshData.url);
+                geometry = result.geometry;
+                originalCenter = result.originalCenter;
             } else {
                 throw new Error(`Unsupported file type: ${meshData.type}`);
             }
@@ -110,22 +115,27 @@ export class ViewerEngine {
             const mesh = new THREE.Mesh(geometry, material);
             mesh.name = meshData.name;
 
-            // Compute bounds and center
+            // Compute bounds (geometry is already centered at origin)
             geometry.computeBoundingBox();
             geometry.computeBoundingSphere();
-            const center = geometry.boundingSphere.center.clone();
+            const center = new THREE.Vector3(0, 0, 0); // Now at origin
             const radius = geometry.boundingSphere.radius;
 
             // Add to scene
             this.scene.add(mesh);
 
-            // Store mesh data
+            // Calculate average orientation
+            const averageOrientation = this.computeAverageOrientation(geometry);
+
+            // Store mesh data with original center preserved
             const meshObject = {
                 ...meshData,
                 threeMesh: mesh,
                 geometry: geometry,
                 center: center,
                 radius: radius,
+                originalCenter: originalCenter, // UTM coordinates preserved!
+                averageOrientation: averageOrientation,
                 vertexCount: geometry.attributes.position.count,
                 faceCount: geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3
             };
@@ -139,6 +149,7 @@ export class ViewerEngine {
             this.fitToView();
 
             console.log(`[ViewerEngine] Loaded ${meshObject.vertexCount.toLocaleString()} vertices, ${meshObject.faceCount.toLocaleString()} faces`);
+            console.log(`[ViewerEngine] Original center (UTM): ${originalCenter.x.toFixed(2)}, ${originalCenter.y.toFixed(2)}, ${originalCenter.z.toFixed(2)}`);
 
             // Clean up object URL
             URL.revokeObjectURL(meshData.url);
@@ -149,6 +160,22 @@ export class ViewerEngine {
             console.error('[ViewerEngine] Failed to load mesh:', error);
             throw error;
         }
+    }
+
+    computeAverageOrientation(geometry) {
+        const normals = geometry.attributes.normal;
+        if (!normals) return new THREE.Vector3(0, 0, 1);
+
+        const normalArray = normals.array;
+        let nx = 0, ny = 0, nz = 0;
+
+        for (let i = 0; i < normalArray.length; i += 3) {
+            nx += normalArray[i];
+            ny += normalArray[i + 1];
+            nz += normalArray[i + 2];
+        }
+
+        return new THREE.Vector3(nx, ny, nz).normalize();
     }
 
     async loadPLY(url) {
@@ -163,13 +190,18 @@ export class ViewerEngine {
                         geometry.computeVertexNormals();
                     }
 
-                    // Center geometry
+                    // Store original center (UTM coordinates) before centering
                     geometry.computeBoundingBox();
-                    const center = new THREE.Vector3();
-                    geometry.boundingBox.getCenter(center);
-                    geometry.translate(-center.x, -center.y, -center.z);
+                    const originalCenter = new THREE.Vector3();
+                    geometry.boundingBox.getCenter(originalCenter);
 
-                    resolve(geometry);
+                    // Center geometry to origin (for 32-bit float precision)
+                    geometry.translate(-originalCenter.x, -originalCenter.y, -originalCenter.z);
+
+                    resolve({
+                        geometry: geometry,
+                        originalCenter: originalCenter
+                    });
                 },
                 (progress) => {
                     if (progress.lengthComputable) {
@@ -217,13 +249,18 @@ export class ViewerEngine {
                         geometry.computeVertexNormals();
                     }
 
-                    // Center geometry
+                    // Store original center (UTM coordinates) before centering
                     geometry.computeBoundingBox();
-                    const center = new THREE.Vector3();
-                    geometry.boundingBox.getCenter(center);
-                    geometry.translate(-center.x, -center.y, -center.z);
+                    const originalCenter = new THREE.Vector3();
+                    geometry.boundingBox.getCenter(originalCenter);
 
-                    resolve(geometry);
+                    // Center geometry to origin (for 32-bit float precision)
+                    geometry.translate(-originalCenter.x, -originalCenter.y, -originalCenter.z);
+
+                    resolve({
+                        geometry: geometry,
+                        originalCenter: originalCenter
+                    });
                 },
                 (progress) => {
                     if (progress.lengthComputable) {
