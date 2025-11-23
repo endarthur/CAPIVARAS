@@ -53,7 +53,8 @@ function setupGPUPicker(THREE) {
 				scale: { value: 400 }
 			},
 			vertexShader: FaceIDShader.vertexShader,
-			fragmentShader: FaceIDShader.fragmentShader
+			fragmentShader: FaceIDShader.fragmentShader,
+			side: THREE.DoubleSide  // Render both front and back faces
 		});
 
 		// Add custom methods to the instance
@@ -409,21 +410,12 @@ function setupGPUPicker(THREE) {
 				});
 			}
 
-			// CRITICAL: Force shader compilation by doing a dummy render to screen
-			// Three.js won't compile shaders until they're actually used in a render
-			const currentRenderTarget = this.renderer.getRenderTarget();
-
-			// Render picking scene to screen (triggers shader compilation)
-			this.renderer.setRenderTarget(null);
-			this.renderer.render(this.pickingScene, this.camera);
-
-			// Now render to the picking texture (shaders should be compiled now)
+			// CRITICAL: Clear render target before rendering
 			this.renderer.setRenderTarget(this.pickingTexture);
 			this.renderer.clear();
-			this.renderer.render(this.pickingScene, this.camera, this.pickingTexture);
 
-			// Restore original render target
-			this.renderer.setRenderTarget(currentRenderTarget);
+			// Render picking scene to texture
+			this.renderer.render(this.pickingScene, this.camera, this.pickingTexture);
 
 			// DEBUG: Check for WebGL errors after rendering
 			if (this.debug) {
