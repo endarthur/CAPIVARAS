@@ -480,6 +480,12 @@ function setupGPUPicker(THREE) {
 		// get object with this id in range
 		// var object = this._getObject(id);
 		if (this.debug) console.log("pick id:", id);
+		if (this.debug) {
+			console.log("pickingScene has", this.pickingScene.children.length, "children");
+			this.pickingScene.children.forEach((child, i) => {
+				console.log("  child", i, "type:", child.type, "name:", child.name, "elementsCount:", child.elementsCount);
+			});
+		}
 		var result = this._getObject(this.pickingScene, 0, id);
 		if (this.debug) console.log("_getObject result:", result, "baseId:", result[0], "object:", result[1]);
 		var object = result[1];
@@ -508,18 +514,27 @@ function setupGPUPicker(THREE) {
 	 * get object by id
 	 */
 	GPUPicker.prototype._getObject = function (object, baseId, id) {
-		// if (this.debug) console.log("_getObject ",baseId);
+		if (this.debug) {
+			console.log("_getObject called: object type:", object.type, "baseId:", baseId, "id:", id, "elementsCount:", object.elementsCount, "children:", object.children.length);
+		}
 		if (object.elementsCount !== undefined && id >= baseId && id < baseId + object.elementsCount) {
+			if (this.debug) console.log("  -> FOUND! Returning object:", object.type, "name:", object.name);
 			return [baseId, object];
 		}
 		if (object.elementsCount !== undefined) {
 			baseId += object.elementsCount;
 		}
 		var result = [baseId, undefined];
+		if (this.debug && object.children.length > 0) {
+			console.log("  -> Checking", object.children.length, "children...");
+		}
 		for (var i = 0; i < object.children.length; i++) {
 			result = this._getObject(object.children[i], result[0], id);
 			if (result[1] !== undefined)
 				break;
+		}
+		if (this.debug && result[1] === undefined) {
+			console.log("  -> Not found in this branch, returning baseId:", result[0]);
 		}
 		return result;
 	};
