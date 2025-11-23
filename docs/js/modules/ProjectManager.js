@@ -21,15 +21,46 @@ export class ProjectManager {
     }
 
     async importMesh() {
-        // TODO: Implement mesh import (PLY files)
-        console.log('[ProjectManager] Importing mesh...');
+        console.log('[ProjectManager] Opening file picker...');
 
-        // For now, return a mock mesh
-        return {
-            name: 'Sample Mesh',
-            vertices: [],
-            faces: []
-        };
+        try {
+            // Create file input element
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.ply,.obj';  // Support both PLY and OBJ
+            input.multiple = false;
+
+            // Wait for file selection
+            const file = await new Promise((resolve, reject) => {
+                input.onchange = () => {
+                    if (input.files && input.files[0]) {
+                        resolve(input.files[0]);
+                    } else {
+                        reject(new Error('No file selected'));
+                    }
+                };
+                input.oncancel = () => reject(new Error('File selection cancelled'));
+                input.click();
+            });
+
+            // Detect file type
+            const ext = file.name.split('.').pop().toLowerCase();
+
+            console.log(`[ProjectManager] Selected ${ext.toUpperCase()} file: ${file.name}`);
+
+            // Return file info for loader
+            return {
+                name: file.name.replace(/\.(ply|obj)$/i, ''),
+                file: file,
+                type: ext,  // 'ply' or 'obj'
+                size: file.size,
+                url: URL.createObjectURL(file)  // For Three.js loaders
+            };
+
+        } catch (error) {
+            console.error('[ProjectManager] Import failed:', error);
+            throw error;
+        }
     }
 
     clear() {

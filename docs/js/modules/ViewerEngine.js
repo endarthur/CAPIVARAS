@@ -1,10 +1,12 @@
 /**
  * ViewerEngine - Three.js 3D rendering engine
+ * Supports both PLY and OBJ file loading
  */
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 export class ViewerEngine {
     constructor(app) {
@@ -14,6 +16,10 @@ export class ViewerEngine {
         this.renderer = null;
         this.controls = null;
         this.meshes = [];
+
+        // Initialize loaders
+        this.plyLoader = new PLYLoader();
+        this.objLoader = new OBJLoader();
     }
 
     async init(container) {
@@ -47,6 +53,7 @@ export class ViewerEngine {
         // Setup lights
         this.scene.add(new THREE.HemisphereLight(0x443333, 0x111122));
         this.addDirectionalLight(1, 1, 1, 0xffffff, 1.35);
+        this.addDirectionalLight(0.5, 1, -1, 0xffffff, 1);
 
         // Handle window resize
         window.addEventListener('resize', () => this.onWindowResize());
@@ -76,18 +83,185 @@ export class ViewerEngine {
     }
 
     async addMesh(meshData) {
-        // TODO: Implement mesh loading from PLY file
-        console.log('[ViewerEngine] Adding mesh:', meshData.name);
-        this.meshes.push(meshData);
-        this.render();
+        console.log(`[ViewerEngine] Loading ${meshData.type.toUpperCase()}: ${meshData.name}`);
+
+        try {
+            let geometry;
+
+            // Load based on file type
+            if (meshData.type === 'ply') {
+                geometry = await this.loadPLY(meshData.url);
+            } else if (meshData.type === 'obj') {
+                geometry = await this.loadOBJ(meshData.url);
+            } else {
+                throw new Error(`Unsupported file type: ${meshData.type}`);
+            }
+
+            // Create mesh material
+            const material = new THREE.MeshPhongMaterial({
+                color: 0xaaaaaa,
+                specular: 0x111111,
+                shininess: 30,
+                vertexColors: true,  // Use vertex colors if available
+                side: THREE.DoubleSide
+            });
+
+            // Create Three.js mesh
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.name = meshData.name;
+
+            // Compute bounds and center
+            geometry.computeBoundingBox();
+            geometry.computeBoundingSphere();
+            const center = geometry.boundingSphere.center.clone();
+            const radius = geometry.boundingSphere.radius;
+
+            // Add to scene
+            this.scene.add(mesh);
+
+            // Store mesh data
+            const meshObject = {
+                ...meshData,
+                threeMesh: mesh,
+                geometry: geometry,
+                center: center,
+                radius: radius,
+                vertexCount: geometry.attributes.position.count,
+                faceCount: geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3
+            };
+
+            this.meshes.push(meshObject);
+
+            // Update status bar
+            this.updateStats();
+
+            // Fit camera to view
+            this.fitToView();
+
+            console.log(`[ViewerEngine] Loaded ${meshObject.vertexCount.toLocaleString()} vertices, ${meshObject.faceCount.toLocaleString()} faces`);
+
+            // Clean up object URL
+            URL.revokeObjectURL(meshData.url);
+
+            return meshObject;
+
+        } catch (error) {
+            console.error('[ViewerEngine] Failed to load mesh:', error);
+            throw error;
+        }
+    }
+
+    async loadPLY(url) {
+        return new Promise((resolve, reject) => {
+            this.plyLoader.load(
+                url,
+                (geometry) => {
+                    console.log('[ViewerEngine] PLY loaded successfully');
+
+                    // Compute normals if not present
+                    if (!geometry.attributes.normal) {
+                        geometry.computeVertexNormals();
+                    }
+
+                    // Center geometry
+                    geometry.computeBoundingBox();
+                    const center = new THREE.Vector3();
+                    geometry.boundingBox.getCenter(center);
+                    geometry.translate(-center.x, -center.y, -center.z);
+
+                    resolve(geometry);
+                },
+                (progress) => {
+                    if (progress.lengthComputable) {
+                        const percentComplete = (progress.loaded / progress.total) * 100;
+                        console.log(`[ViewerEngine] Loading PLY: ${percentComplete.toFixed(1)}%`);
+                        // TODO: Update progress bar in UI
+                    }
+                },
+                (error) => {
+                    console.error('[ViewerEngine] PLY load error:', error);
+                    reject(error);
+                }
+            );
+        });
+    }
+
+    async loadOBJ(url) {
+        return new Promise((resolve, reject) => {
+            this.objLoader.load(
+                url,
+                (object) => {
+                    console.log('[ViewerEngine] OBJ loaded successfully');
+
+                    // OBJ loader returns a Group, extract the first mesh geometry
+                    let geometry = null;
+
+                    object.traverse((child) => {
+                        if (child instanceof THREE.Mesh && !geometry) {
+                            geometry = child.geometry;
+                        }
+                    });
+
+                    if (!geometry) {
+                        reject(new Error('No geometry found in OBJ file'));
+                        return;
+                    }
+
+                    // Convert to BufferGeometry if needed
+                    if (!geometry.isBufferGeometry) {
+                        geometry = new THREE.BufferGeometry().fromGeometry(geometry);
+                    }
+
+                    // Compute normals if not present
+                    if (!geometry.attributes.normal) {
+                        geometry.computeVertexNormals();
+                    }
+
+                    // Center geometry
+                    geometry.computeBoundingBox();
+                    const center = new THREE.Vector3();
+                    geometry.boundingBox.getCenter(center);
+                    geometry.translate(-center.x, -center.y, -center.z);
+
+                    resolve(geometry);
+                },
+                (progress) => {
+                    if (progress.lengthComputable) {
+                        const percentComplete = (progress.loaded / progress.total) * 100;
+                        console.log(`[ViewerEngine] Loading OBJ: ${percentComplete.toFixed(1)}%`);
+                        // TODO: Update progress bar in UI
+                    }
+                },
+                (error) => {
+                    console.error('[ViewerEngine] OBJ load error:', error);
+                    reject(error);
+                }
+            );
+        });
+    }
+
+    updateStats() {
+        const totalVertices = this.meshes.reduce((sum, m) => sum + m.vertexCount, 0);
+        const totalFaces = this.meshes.reduce((sum, m) => sum + m.faceCount, 0);
+        const meshCount = this.meshes.length;
+
+        // Update status bar
+        document.getElementById('vertex-count').textContent = `${totalVertices.toLocaleString()} vertices`;
+        document.getElementById('face-count').textContent = `${totalFaces.toLocaleString()} faces`;
+        document.getElementById('mesh-count').textContent = `${meshCount} ${meshCount === 1 ? 'mesh' : 'meshes'}`;
     }
 
     clear() {
         // Remove all meshes from scene
-        this.meshes.forEach(mesh => {
-            this.scene.remove(mesh.threeMesh);
+        this.meshes.forEach(meshData => {
+            if (meshData.threeMesh) {
+                this.scene.remove(meshData.threeMesh);
+                meshData.geometry.dispose();
+                meshData.threeMesh.material.dispose();
+            }
         });
         this.meshes = [];
+        this.updateStats();
         this.render();
     }
 
@@ -97,24 +271,81 @@ export class ViewerEngine {
     }
 
     toggleWireframe() {
-        // TODO: Implement wireframe toggle
-        console.log('[ViewerEngine] Toggle wireframe');
+        this.meshes.forEach(meshData => {
+            if (meshData.threeMesh) {
+                meshData.threeMesh.material.wireframe = !meshData.threeMesh.material.wireframe;
+            }
+        });
+        this.render();
+        console.log('[ViewerEngine] Wireframe toggled');
     }
 
     toggleVertexColors() {
-        // TODO: Implement vertex colors toggle
-        console.log('[ViewerEngine] Toggle vertex colors');
+        this.meshes.forEach(meshData => {
+            if (meshData.threeMesh) {
+                meshData.threeMesh.material.vertexColors = !meshData.threeMesh.material.vertexColors;
+                meshData.threeMesh.material.needsUpdate = true;
+            }
+        });
+        this.render();
+        console.log('[ViewerEngine] Vertex colors toggled');
     }
 
     fitToView() {
-        // TODO: Implement fit to view
-        console.log('[ViewerEngine] Fit to view');
+        if (this.meshes.length === 0) return;
+
+        // Get combined bounding sphere of all meshes
+        const box = new THREE.Box3();
+        this.meshes.forEach(meshData => {
+            if (meshData.threeMesh) {
+                box.expandByObject(meshData.threeMesh);
+            }
+        });
+
+        const center = new THREE.Vector3();
+        const sphere = new THREE.Sphere();
+        box.getBoundingSphere(sphere);
+        center.copy(sphere.center);
+        const radius = sphere.radius;
+
+        // Calculate camera distance
+        const fov = this.camera.fov * (Math.PI / 180);
+        let distance = radius / Math.tan(fov / 2);
+        distance *= 1.5; // Add some padding
+
+        // Position camera
+        const direction = this.camera.position.clone().sub(this.controls.target).normalize();
+        this.camera.position.copy(direction.multiplyScalar(distance).add(center));
+
+        // Update controls target
+        this.controls.target.copy(center);
         this.controls.update();
+
+        console.log('[ViewerEngine] Fit to view - radius:', radius.toFixed(2));
         this.render();
     }
 
     setView(direction) {
-        // TODO: Implement preset views (front, right, top, etc.)
-        console.log('[ViewerEngine] Set view:', direction);
+        if (this.meshes.length === 0) return;
+
+        const target = this.controls.target;
+        const distance = this.camera.position.distanceTo(target);
+
+        const positions = {
+            'front': new THREE.Vector3(0, 0, distance),
+            'back': new THREE.Vector3(0, 0, -distance),
+            'right': new THREE.Vector3(distance, 0, 0),
+            'left': new THREE.Vector3(-distance, 0, 0),
+            'top': new THREE.Vector3(0, distance, 0),
+            'bottom': new THREE.Vector3(0, -distance, 0)
+        };
+
+        if (positions[direction]) {
+            this.camera.position.copy(positions[direction]).add(target);
+            this.camera.up.set(0, 1, 0);
+            this.controls.update();
+            this.render();
+            console.log(`[ViewerEngine] View set to: ${direction}`);
+        }
     }
 }
