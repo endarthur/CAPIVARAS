@@ -549,9 +549,14 @@ export class ViewerEngine {
                 }
             }
 
-            // Re-enable orbit controls (except in loupe mode)
+            // Re-enable orbit controls based on current tool state
+            // IMPORTANT: Always sync controls.enabled with tool state on mouseup
             if (this.activeTool === 'hand') {
                 this.controls.enabled = true;
+                console.log('[ViewerEngine] Mouseup: Controls re-enabled (hand tool)');
+            } else if (this.activeTool === 'loupe') {
+                this.controls.enabled = false;
+                console.log('[ViewerEngine] Mouseup: Controls remain disabled (loupe tool)');
             }
 
             this.mouseState.isDown = false;
@@ -818,11 +823,18 @@ export class ViewerEngine {
             return;
         }
 
+        console.log('[ViewerEngine] Changing tool from', this.activeTool, 'to', tool);
+
         this.activeTool = tool;
+
+        // Reset mouse state when changing tools to avoid lingering state issues
+        this.mouseState.isDown = false;
+        this.mouseState.isDragging = false;
 
         // Update controls state based on tool
         if (tool === 'hand') {
             this.controls.enabled = true;
+            console.log('[ViewerEngine] Controls enabled for hand tool');
             // Clear orientation display when switching to hand
             const orientationDisplay = document.getElementById('orientation-display');
             if (orientationDisplay) {
@@ -830,13 +842,14 @@ export class ViewerEngine {
             }
         } else if (tool === 'loupe') {
             this.controls.enabled = false;
+            console.log('[ViewerEngine] Controls disabled for loupe tool');
         }
 
         // Update cursor
         const canvas = this.renderer.domElement;
         canvas.style.cursor = tool === 'loupe' ? 'crosshair' : 'grab';
 
-        console.log('[ViewerEngine] Tool changed to:', tool);
+        console.log('[ViewerEngine] Tool changed to:', tool, 'controls.enabled:', this.controls.enabled);
     }
 
     /**

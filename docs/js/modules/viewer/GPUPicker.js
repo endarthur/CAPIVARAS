@@ -481,17 +481,25 @@ function setupGPUPicker(THREE) {
 		// var object = this._getObject(id);
 		if (this.debug) console.log("pick id:", id);
 		var result = this._getObject(this.pickingScene, 0, id);
+		if (this.debug) console.log("_getObject result:", result, "baseId:", result[0], "object:", result[1]);
 		var object = result[1];
 		var elementId = id - result[0];
+		if (this.debug) console.log("elementId:", elementId, "object exists:", !!object);
 		if (object) {
+			if (this.debug) console.log("object type:", object.type, "has raycastWithID:", !!object.raycastWithID);
 			if (object.raycastWithID) {
+				if (this.debug) console.log("Calling raycastWithID with elementId:", elementId);
 				var intersect = object.raycastWithID(elementId, raycaster);
+				if (this.debug) console.log("raycastWithID returned:", intersect);
 				if (intersect) {
 					intersect.object = object.originalObject;
 				}
 				return intersect;
+			} else {
+				if (this.debug) console.log("ERROR: object has no raycastWithID method!");
 			}
-
+		} else {
+			if (this.debug) console.log("ERROR: No object found for id:", id);
 		}
 		return;
 	};
