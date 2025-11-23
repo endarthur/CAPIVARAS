@@ -333,7 +333,43 @@ function setupGPUPicker(THREE) {
 	};
 	GPUPicker.prototype.update = function () {
 		if (this.needUpdate) {
+			// DEBUG: Check what's actually in the picking scene before rendering
+			if (this.debug) {
+				console.log("GPUPicker update - about to render picking scene");
+				this.pickingScene.traverse((obj) => {
+					if (obj.material) {
+						console.log("  - Object:", obj.type,
+							"material:", obj.material.type,
+							"isShaderMaterial:", obj.material instanceof THREE.ShaderMaterial,
+							"uniforms:", obj.material.uniforms ? Object.keys(obj.material.uniforms) : "none",
+							"geometry:", obj.geometry ? obj.geometry.type : "none",
+							"visible:", obj.visible);
+
+						// Check if shader compiled
+						if (obj.material instanceof THREE.ShaderMaterial) {
+							// Trigger shader compilation by rendering once
+							obj.material.needsUpdate = true;
+						}
+					}
+				});
+			}
+
 			this.renderer.render(this.pickingScene, this.camera, this.pickingTexture);
+
+			// DEBUG: Check for WebGL errors after rendering
+			if (this.debug) {
+				const gl = this.renderer.getContext();
+				const glError = gl.getError();
+				if (glError !== gl.NO_ERROR) {
+					console.error("WebGL error after picking render:", glError);
+				}
+
+				// Sample a few pixels from the render target to see what was actually rendered
+				const testBuffer = new Uint8Array(4 * 10); // Sample 10 pixels
+				this.renderer.readRenderTargetPixels(this.pickingTexture, 0, 0, 10, 1, testBuffer);
+				console.log("Sample pixels from render target (first 10):", Array.from(testBuffer));
+			}
+
 			//read the rendering texture
 			this.renderer.readRenderTargetPixels(this.pickingTexture, 0, 0, this.pickingTexture.width, this.pickingTexture.height, this.pixelBuffer);
 			this.needUpdate = false;
@@ -548,9 +584,15 @@ function setupGPUPicker(THREE) {
 			object.material.setBaseID(baseId);
 			object.material.setPointSize(pointSize + this.pointShell);//make the point a little wider to hit
 			object.material.setPointScale(this.renderer.getSize(_v2).height * this.renderer.getPixelRatio() / 2);
+
+			// CRITICAL: Force shader compilation
+			object.material.needsUpdate = true;
+
 			if (this.debug) {
 				console.log("GPUPicker _addElementID:", object.name || object.type,
-					"baseId:", baseId, "elementsCount:", object.elementsCount);
+					"baseId:", baseId, "elementsCount:", object.elementsCount,
+					"material type:", object.material.type,
+					"has id attribute:", object.geometry.attributes.id !== undefined);
 			}
 			return object.elementsCount;
 		}
