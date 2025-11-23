@@ -486,16 +486,12 @@ export class ViewerEngine {
         };
 
         canvas.addEventListener('mousedown', (e) => {
+            console.log('[ViewerEngine] Mousedown - tool:', this.activeTool, 'ctrl:', e.ctrlKey, 'controls.enabled before:', this.controls.enabled);
+
             this.mouseState.isDown = true;
             this.mouseState.startX = e.clientX;
             this.mouseState.startY = e.clientY;
             this.mouseState.isDragging = false;
-
-            // Loupe tool: disable camera controls
-            if (this.activeTool === 'loupe' && !e.ctrlKey && !e.metaKey) {
-                e.preventDefault();
-                this.controls.enabled = false;
-            }
 
             // Ctrl+click or Ctrl+Alt+click - picking/painting mode from any tool
             if (e.ctrlKey || e.metaKey) {
@@ -504,6 +500,7 @@ export class ViewerEngine {
 
                 // Disable orbit controls during picking operations
                 this.controls.enabled = false;
+                console.log('[ViewerEngine] Mousedown: Disabled controls (ctrl)');
 
                 if (e.altKey) {
                     // Ctrl+Alt+click - trace digitizing (future implementation)
@@ -513,6 +510,22 @@ export class ViewerEngine {
                     console.log('[ViewerEngine] Paint mode ready');
                 }
             }
+            // No modifiers: handle based on tool
+            else {
+                if (this.activeTool === 'loupe') {
+                    // Loupe tool: disable camera controls
+                    e.preventDefault();
+                    this.controls.enabled = false;
+                    console.log('[ViewerEngine] Mousedown: Disabled controls (loupe)');
+                } else if (this.activeTool === 'hand') {
+                    // Hand tool: ensure controls are enabled
+                    // Don't prevent default - let OrbitControls handle the event
+                    this.controls.enabled = true;
+                    console.log('[ViewerEngine] Mousedown: Ensured controls enabled (hand)');
+                }
+            }
+
+            console.log('[ViewerEngine] Mousedown: controls.enabled after:', this.controls.enabled);
         });
 
         canvas.addEventListener('mousemove', (e) => {
@@ -804,15 +817,22 @@ export class ViewerEngine {
         if (intersect && intersect.face && intersect.face.normal) {
             // Convert face normal to attitude
             const normal = intersect.face.normal;
+            console.log('[updateOrientationDisplayLive] Face normal:', normal.x.toFixed(3), normal.y.toFixed(3), normal.z.toFixed(3));
+
             const attitudeVector = new AttitudeVector([normal.x, normal.y, normal.z]);
             const [dipDirection, dip] = spherePlane(attitudeVector);
 
+            console.log('[updateOrientationDisplayLive] Attitude:', dipDirection.toFixed(1), '/', dip.toFixed(1));
+
             // Update orientation display
-            orientationDisplay.textContent = `${Math.round(dipDirection).toString().padStart(3, '0')}/${Math.round(dip).toString().padStart(2, '0')}`;
+            const displayText = `${Math.round(dipDirection).toString().padStart(3, '0')}/${Math.round(dip).toString().padStart(2, '0')}`;
+            console.log('[updateOrientationDisplayLive] Setting display to:', displayText);
+            orientationDisplay.textContent = displayText;
         } else {
             // DEBUG: Log why we're not getting a hit
             if (!intersect) {
-                console.log('[updateOrientationDisplayLive] No intersect');
+                // Don't log every miss - too noisy
+                // console.log('[updateOrientationDisplayLive] No intersect');
             } else if (!intersect.face) {
                 console.log('[updateOrientationDisplayLive] No face on intersect:', intersect);
             } else if (!intersect.face.normal) {
