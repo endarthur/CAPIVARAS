@@ -19,10 +19,8 @@ function setupGPUPicker(THREE) {
 			"uniform float baseId;",
 			"",
 			"varying vec4 worldId;",
-			"varying vec2 vId;",  // DEBUG: pass id to fragment shader
 			"",
 			"void main() {",
-			"  vId = id;",  // DEBUG
 			"  vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );",
 			"  gl_PointSize = size * ( scale / length( mvPosition.xyz ) );",
 			"  float i = baseId + id.x;",
@@ -39,13 +37,9 @@ function setupGPUPicker(THREE) {
 			"#endif\n",
 			"",
 			"varying vec4 worldId;",
-			"varying vec2 vId;",  // DEBUG
 			"",
 			"void main() {",
-			"  // DEBUG: visualize if shader is working at all",
-			"  // If you see red/green gradients, shader works but id is being read",
-			"  gl_FragColor = vec4(vId.x / 100000.0, vId.y / 10000.0, 0.5, 1.0);",
-			"  // gl_FragColor = worldId;",
+			"  gl_FragColor = worldId;",
 			"}"
 		].join("\n")
 	};
