@@ -3,6 +3,7 @@
  */
 
 import { Mesh } from './DataModels.js';
+import * as FileSystemIO from '../io/FileSystemIO.js';
 
 export class ProjectManager {
     constructor() {

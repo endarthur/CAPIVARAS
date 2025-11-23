@@ -3,11 +3,11 @@
  * Pure vanilla JavaScript, ES6 modules, no build step
  */
 
-import { ViewerEngine } from './modules/ViewerEngine.js';
-import { ProjectManager } from './modules/ProjectManager.js';
-import { UIController } from './modules/UIController.js';
-import { ToolController } from './modules/ToolController.js';
-import { LayerManager } from './modules/LayerManager.js';
+import { ViewerEngine } from './modules/viewer/ViewerEngine.js';
+import { ProjectManager } from './modules/core/ProjectManager.js';
+import { UIController } from './modules/ui/UIController.js';
+import { ToolController } from './modules/tools/ToolController.js';
+import { LayerManager } from './modules/ui/LayerManager.js';
 
 class CapivarasApp {
     constructor() {
