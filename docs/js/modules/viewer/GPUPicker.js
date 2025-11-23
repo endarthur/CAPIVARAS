@@ -6,9 +6,6 @@
 
 import * as THREE from 'three';
 
-// Re-export as single import
-export { setupGPUPicker, GPUPicker };
-
 // Setup function that extends THREE.js prototypes
 function setupGPUPicker(THREE) {
 (function (THREE) {
@@ -509,10 +506,6 @@ function setupGPUPicker(THREE) {
 	};
 }
 
-// Initialize THREE.js extensions
-setupGPUPicker(THREE);
-
-// Export the GPUPicker class
-const GPUPicker = THREE.GPUPicker;
-
-export default GPUPicker;
+// Export both the setup function and the GPUPicker class reference
+export { setupGPUPicker };
+export const GPUPicker = THREE.GPUPicker;
