@@ -221,10 +221,21 @@ export class ViewerEngine {
                 url,
                 (geometry) => {
                     console.log('[ViewerEngine] PLY loaded successfully');
+                    console.log('[ViewerEngine] PLY geometry.index:', geometry.index ? 'INDEXED' : 'NON-INDEXED');
+                    if (geometry.index) {
+                        console.log('[ViewerEngine] PLY vertices:', geometry.attributes.position.count,
+                                    'indices:', geometry.index.count,
+                                    'faces:', geometry.index.count / 3);
+                    } else {
+                        console.log('[ViewerEngine] PLY vertices (non-indexed):', geometry.attributes.position.count,
+                                    'faces:', geometry.attributes.position.count / 3);
+                    }
 
                     // Compute normals if not present
                     if (!geometry.attributes.normal) {
+                        console.log('[ViewerEngine] Computing vertex normals...');
                         geometry.computeVertexNormals();
+                        console.log('[ViewerEngine] After computeVertexNormals, geometry.index:', geometry.index ? 'INDEXED' : 'NON-INDEXED');
                     }
 
                     // Store original center (UTM coordinates) before centering
