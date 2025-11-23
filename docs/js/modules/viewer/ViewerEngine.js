@@ -439,6 +439,18 @@ export class ViewerEngine {
         }
 
         const rect = this.renderer.domElement.getBoundingClientRect();
+
+        // CRITICAL: Ensure picker texture size matches canvas before picking
+        const canvasWidth = Math.floor(rect.width);
+        const canvasHeight = Math.floor(rect.height);
+        if (this.picker.pickingTexture.width !== canvasWidth ||
+            this.picker.pickingTexture.height !== canvasHeight) {
+            console.log('[ViewerEngine] Resizing picker texture from',
+                this.picker.pickingTexture.width, 'x', this.picker.pickingTexture.height,
+                'to', canvasWidth, 'x', canvasHeight);
+            this.picker.resizeTexture(canvasWidth, canvasHeight);
+        }
+
         const mouse = {
             x: Math.floor(x - rect.left),
             y: Math.floor(rect.height - (y - rect.top)) // Flip Y for GPU picker
