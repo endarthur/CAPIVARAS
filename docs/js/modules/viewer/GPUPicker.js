@@ -142,21 +142,24 @@ function setupGPUPicker(THREE) {
 		return function (elID, raycaster) {
 			var geometry = this.geometry;
 			var attributes = geometry.attributes;
+
+			// CRITICAL: Must return null if geometry is indexed
+			if (geometry.index !== null) {
+				console.error("ERROR: raycastWithID does not support indexed vertices! Geometry must be non-indexed.");
+				return null;
+			}
+
 			inverseMatrix.copy(this.matrixWorld).invert();
 			ray.copy(raycaster.ray).applyMatrix4(inverseMatrix);
-			var a, b, c;
-			if (geometry.index !== null) {
-				console.log("WARNING: raycastWithID does not support indexed vertices");
-			} else {
-				var position = attributes.position;
-				var j = elID * 3;
-				a = j;
-				b = j + 1;
-				c = j + 2;
-				vA.fromBufferAttribute(position, a);
-				vB.fromBufferAttribute(position, b);
-				vC.fromBufferAttribute(position, c);
-			}
+
+			var position = attributes.position;
+			var j = elID * 3;
+			var a = j;
+			var b = j + 1;
+			var c = j + 2;
+			vA.fromBufferAttribute(position, a);
+			vB.fromBufferAttribute(position, b);
+			vC.fromBufferAttribute(position, c);
 			var intersection = checkIntersection(this, raycaster, ray, vA, vB, vC, intersectionPoint);
 			if (intersection === null) {
 				console.log("WARNING: intersectionPoint missing");
@@ -184,43 +187,40 @@ function setupGPUPicker(THREE) {
 		var interSegment = new THREE.Vector3();
 		var interRay = new THREE.Vector3();
 		return function (elID, raycaster) {
+			var geometry = this.geometry;
+
+			// CRITICAL: Must return null if geometry is indexed
+			if (geometry.index !== null) {
+				console.error("ERROR: raycastWithID does not support indexed vertices! Geometry must be non-indexed.");
+				return null;
+			}
+
 			inverseMatrix.copy(this.matrixWorld).invert();
 			ray.copy(raycaster.ray).applyMatrix4(inverseMatrix);
-			var geometry = this.geometry;
+
 			if (geometry instanceof THREE.BufferGeometry) {
-
 				var attributes = geometry.attributes;
+				var positions = attributes.position.array;
+				var i = elID * 6;
+				vStart.fromArray(positions, i);
+				vEnd.fromArray(positions, i + 3);
 
-				if (geometry.index !== null) {
-					console.log("WARNING: raycastWithID does not support indexed vertices");
-				} else {
+				var distSq = ray.distanceSqToSegment(vStart, vEnd, interRay, interSegment);
+				var distance = ray.origin.distanceTo(interRay);
 
-					var positions = attributes.position.array;
-					var i = elID * 6;
-					vStart.fromArray(positions, i);
-					vEnd.fromArray(positions, i + 3);
+				if (distance < raycaster.near || distance > raycaster.far) return;
 
-					var distSq = ray.distanceSqToSegment(vStart, vEnd, interRay, interSegment);
-					var distance = ray.origin.distanceTo(interRay);
-
-					if (distance < raycaster.near || distance > raycaster.far) return;
-
-					var intersect = {
-
-						distance: distance,
-						// What do we want? intersection point on the ray or on the segment??
-						// point: raycaster.ray.at( distance ),
-						point: interSegment.clone().applyMatrix4(this.matrixWorld),
-						index: i,
-						face: null,
-						faceIndex: null,
-						object: this
-
-					};
-					return intersect;
-
-				}
-
+				var intersect = {
+					distance: distance,
+					// What do we want? intersection point on the ray or on the segment??
+					// point: raycaster.ray.at( distance ),
+					point: interSegment.clone().applyMatrix4(this.matrixWorld),
+					index: i,
+					face: null,
+					faceIndex: null,
+					object: this
+				};
+				return intersect;
 			}
 		};
 
