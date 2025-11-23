@@ -62,12 +62,15 @@ export class ViewerEngine {
         this.addDirectionalLight(1, 1, 1, 0xffffff, 1.35);
         this.addDirectionalLight(0.5, 1, -1, 0xffffff, 1);
 
-        // Setup GPU picker
+        // Setup GPU picker (after renderer is fully initialized)
         this.picker = new this.GPUPicker({
-            renderer: this.renderer,
             debug: true
         });
+        this.picker.setRenderer(this.renderer);
         this.picker.setCamera(this.camera);
+
+        // CRITICAL: Manually resize picker to match canvas (renderer.getSize() may return 0 during init)
+        this.picker.resizeTexture(container.clientWidth, container.clientHeight);
 
         // Setup mouse event handlers for picking
         this.setupMouseHandlers();
