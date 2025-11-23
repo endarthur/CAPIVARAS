@@ -432,12 +432,6 @@ export class ViewerEngine {
                 if (intersect) {
                     this.showSelectionMarker(intersect.point);
                     this.updatePropertiesPanel(intersect);
-                    this.app.ui.showNotification(
-                        'Face Selected',
-                        `Object: ${intersect.object.name}, Face: ${Math.floor(intersect.index / 3)}`,
-                        'info',
-                        3000
-                    );
                 } else {
                     console.log('[ViewerEngine] No face picked at', e.clientX, e.clientY);
                     this.updatePropertiesPanel(null);
@@ -563,10 +557,15 @@ export class ViewerEngine {
      */
     updatePropertiesPanel(intersect) {
         const propertiesContent = document.getElementById('properties-content');
-        if (!propertiesContent) return;
+        const orientationDisplay = document.getElementById('orientation-display');
 
         if (!intersect || !intersect.face) {
-            propertiesContent.innerHTML = '<p class="empty-state">Select a face to view properties</p>';
+            if (propertiesContent) {
+                propertiesContent.innerHTML = '<p class="empty-state">Select a face to view properties</p>';
+            }
+            if (orientationDisplay) {
+                orientationDisplay.textContent = '000/00';
+            }
             return;
         }
 
@@ -579,36 +578,43 @@ export class ViewerEngine {
         // Calculate dip direction and dip angle
         const [dipDirection, dip] = spherePlane(attitudeVector);
 
-        // Update properties panel
-        propertiesContent.innerHTML = `
-            <div class="property-group">
-                <h4>Face Attitude</h4>
-                <div class="property-item">
-                    <label>Dip Direction:</label>
-                    <span>${dipDirection.toFixed(1)}°</span>
-                </div>
-                <div class="property-item">
-                    <label>Dip:</label>
-                    <span>${dip.toFixed(1)}°</span>
-                </div>
-            </div>
-            <div class="property-group">
-                <h4>Face Info</h4>
-                <div class="property-item">
-                    <label>Object:</label>
-                    <span>${intersect.object.name}</span>
-                </div>
-                <div class="property-item">
-                    <label>Face Index:</label>
-                    <span>${Math.floor(intersect.index / 3)}</span>
-                </div>
-            </div>
-        `;
+        // Update orientation display (top left of viewer)
+        if (orientationDisplay) {
+            orientationDisplay.textContent = `${Math.round(dipDirection).toString().padStart(3, '0')}/${Math.round(dip).toString().padStart(2, '0')}`;
+        }
 
-        // Show properties panel if collapsed
-        const propertiesPanel = document.getElementById('properties-panel');
-        if (propertiesPanel && propertiesPanel.classList.contains('collapsed')) {
-            propertiesPanel.classList.remove('collapsed');
+        // Update properties panel
+        if (propertiesContent) {
+            propertiesContent.innerHTML = `
+                <div class="property-group">
+                    <h4>Face Attitude</h4>
+                    <div class="property-item">
+                        <label>Dip Direction:</label>
+                        <span>${dipDirection.toFixed(1)}°</span>
+                    </div>
+                    <div class="property-item">
+                        <label>Dip:</label>
+                        <span>${dip.toFixed(1)}°</span>
+                    </div>
+                </div>
+                <div class="property-group">
+                    <h4>Face Info</h4>
+                    <div class="property-item">
+                        <label>Object:</label>
+                        <span>${intersect.object.name}</span>
+                    </div>
+                    <div class="property-item">
+                        <label>Face Index:</label>
+                        <span>${Math.floor(intersect.index / 3)}</span>
+                    </div>
+                </div>
+            `;
+
+            // Show properties panel if collapsed
+            const propertiesPanel = document.getElementById('properties-panel');
+            if (propertiesPanel && propertiesPanel.classList.contains('collapsed')) {
+                propertiesPanel.classList.remove('collapsed');
+            }
         }
     }
 
