@@ -43,9 +43,9 @@ function setupGPUPicker(THREE) {
 			"",
 			"void main() {",
 			"  // DEBUG: visualize if shader is working at all",
-			"  // If you see red/green gradients, shader works but id might be wrong",
-			"  // gl_FragColor = vec4(vId.x / 10000.0, vId.y / 10000.0, 0.0, 1.0);",
-			"  gl_FragColor = worldId;",
+			"  // If you see red/green gradients, shader works but id is being read",
+			"  gl_FragColor = vec4(vId.x / 100000.0, vId.y / 10000.0, 0.5, 1.0);",
+			"  // gl_FragColor = worldId;",
 			"}"
 		].join("\n")
 	};
