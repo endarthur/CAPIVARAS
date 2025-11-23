@@ -797,6 +797,7 @@ export class ViewerEngine {
 
     /**
      * Set active tool (hand or loupe)
+     * Called by ToolController, not the other way around
      */
     setTool(tool) {
         if (tool !== 'hand' && tool !== 'loupe') {
@@ -821,11 +822,6 @@ export class ViewerEngine {
         // Update cursor
         const canvas = this.renderer.domElement;
         canvas.style.cursor = tool === 'loupe' ? 'crosshair' : 'grab';
-
-        // Notify UI
-        if (this.app && this.app.tools) {
-            this.app.tools.setActiveTool(tool);
-        }
 
         console.log('[ViewerEngine] Tool changed to:', tool);
     }
