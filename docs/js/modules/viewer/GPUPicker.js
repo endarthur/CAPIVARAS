@@ -44,8 +44,9 @@ function setupGPUPicker(THREE) {
 		].join("\n")
 	};
 
+	// Factory function that returns a THREE.ShaderMaterial instance with custom methods
 	var FaceIDMaterial = function () {
-		THREE.ShaderMaterial.call(this, {
+		var material = new THREE.ShaderMaterial({
 			uniforms: {
 				baseId: {
 					type: "f",
@@ -62,19 +63,20 @@ function setupGPUPicker(THREE) {
 			},
 			vertexShader: FaceIDShader.vertexShader,
 			fragmentShader: FaceIDShader.fragmentShader
-
 		});
-	};
-	FaceIDMaterial.prototype = Object.create(THREE.ShaderMaterial.prototype);
-	FaceIDMaterial.prototype.constructor = FaceIDMaterial;
-	FaceIDMaterial.prototype.setBaseID = function (baseId) {
-		this.uniforms.baseId.value = baseId;
-	};
-	FaceIDMaterial.prototype.setPointSize = function (size) {
-		this.uniforms.size.value = size;
-	};
-	FaceIDMaterial.prototype.setPointScale = function (scale) {
-		this.uniforms.scale.value = scale;
+
+		// Add custom methods to the instance
+		material.setBaseID = function (baseId) {
+			this.uniforms.baseId.value = baseId;
+		};
+		material.setPointSize = function (size) {
+			this.uniforms.size.value = size;
+		};
+		material.setPointScale = function (scale) {
+			this.uniforms.scale.value = scale;
+		};
+
+		return material;
 	};
 
 	//add a originalObject to Object3D
