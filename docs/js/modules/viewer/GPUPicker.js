@@ -409,24 +409,21 @@ function setupGPUPicker(THREE) {
 				});
 			}
 
-			// CRITICAL: Force shader compilation before rendering
-			// Without this, Three.js uses a fallback material which outputs wrong colors
-			this.pickingScene.traverse((obj) => {
-				if (obj.material && obj.material.uniforms) {
-					// Compile the shader by calling a dummy render
-					obj.material.needsUpdate = true;
-				}
-			});
+			// CRITICAL: Force shader compilation by doing a dummy render to screen
+			// Three.js won't compile shaders until they're actually used in a render
+			const currentRenderTarget = this.renderer.getRenderTarget();
 
-			// Force compilation of all shaders in the picking scene
-			this.renderer.compile(this.pickingScene, this.camera);
+			// Render picking scene to screen (triggers shader compilation)
+			this.renderer.setRenderTarget(null);
+			this.renderer.render(this.pickingScene, this.camera);
 
-			// CRITICAL: Clear render target before rendering
-			const gl = this.renderer.getContext();
+			// Now render to the picking texture (shaders should be compiled now)
 			this.renderer.setRenderTarget(this.pickingTexture);
 			this.renderer.clear();
-
 			this.renderer.render(this.pickingScene, this.camera, this.pickingTexture);
+
+			// Restore original render target
+			this.renderer.setRenderTarget(currentRenderTarget);
 
 			// DEBUG: Check for WebGL errors after rendering
 			if (this.debug) {
