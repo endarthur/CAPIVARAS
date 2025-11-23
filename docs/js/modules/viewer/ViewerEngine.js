@@ -400,6 +400,11 @@ export class ViewerEngine {
         });
 
         canvas.addEventListener('mousemove', (e) => {
+            // Live orientation display update (using raycaster for performance)
+            if (!this.mouseState.isDown && !e.ctrlKey && !e.metaKey) {
+                this.updateOrientationDisplayLive(e.clientX, e.clientY);
+            }
+
             if (!this.mouseState.isDown) return;
 
             // Check if we've moved enough to be considered dragging
@@ -430,7 +435,7 @@ export class ViewerEngine {
                 const intersect = this.pickFace(e.clientX, e.clientY);
 
                 if (intersect) {
-                    this.showSelectionMarker(intersect.point);
+                    this.showSelectionMarker(intersect.point, intersect.face ? intersect.face.normal : null);
                     this.updatePropertiesPanel(intersect);
                 } else {
                     console.log('[ViewerEngine] No face picked at', e.clientX, e.clientY);
@@ -515,23 +520,36 @@ export class ViewerEngine {
     }
 
     /**
-     * Show a visual marker at the selected point
+     * Show a visual marker at the selected point with orientation
      * @param {THREE.Vector3} point - The 3D point to mark
+     * @param {THREE.Vector3} normal - The face normal for orientation
      */
-    showSelectionMarker(point) {
+    showSelectionMarker(point, normal) {
         // Remove existing marker
         this.hideSelectionMarker();
 
-        // Create a small sphere at the picked point
-        const geometry = new THREE.SphereGeometry(0.05, 16, 16);
+        // Create an oriented disk (circle) at the picked point
+        const geometry = new THREE.CircleGeometry(0.5, 32);
         const material = new THREE.MeshBasicMaterial({
             color: 0xff0000,
+            side: THREE.DoubleSide,
             transparent: true,
-            opacity: 0.8
+            opacity: 0.7,
+            depthTest: false // Always visible on top
         });
 
         this.selectionMarker = new THREE.Mesh(geometry, material);
         this.selectionMarker.position.copy(point);
+
+        // Orient the disk to align with the face normal
+        if (normal) {
+            // Default circle normal is (0, 0, 1), we need to rotate to match face normal
+            const quaternion = new THREE.Quaternion();
+            quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal.clone().normalize());
+            this.selectionMarker.setRotationFromQuaternion(quaternion);
+        }
+
+        this.selectionMarker.renderOrder = 999; // Render on top
         this.scene.add(this.selectionMarker);
         this.render();
 
@@ -585,16 +603,13 @@ export class ViewerEngine {
 
         // Update properties panel
         if (propertiesContent) {
+            const attitudeStr = `${Math.round(dipDirection).toString().padStart(3, '0')}/${Math.round(dip).toString().padStart(2, '0')}`;
             propertiesContent.innerHTML = `
                 <div class="property-group">
                     <h4>Face Attitude</h4>
-                    <div class="property-item">
-                        <label>Dip Direction:</label>
-                        <span>${dipDirection.toFixed(1)}°</span>
-                    </div>
-                    <div class="property-item">
-                        <label>Dip:</label>
-                        <span>${dip.toFixed(1)}°</span>
+                    <div class="property-item attitude-display">
+                        <span class="attitude-value">${attitudeStr}</span>
+                        <span class="attitude-detail">${dipDirection.toFixed(1)}° / ${dip.toFixed(1)}°</span>
                     </div>
                 </div>
                 <div class="property-group">
@@ -615,6 +630,55 @@ export class ViewerEngine {
             if (propertiesPanel && propertiesPanel.classList.contains('collapsed')) {
                 propertiesPanel.classList.remove('collapsed');
             }
+        }
+    }
+
+    /**
+     * Update orientation display during mouse move using raycaster (lighter than GPU picker)
+     * @param {number} x - Mouse X coordinate (client space)
+     * @param {number} y - Mouse Y coordinate (client space)
+     */
+    updateOrientationDisplayLive(x, y) {
+        const orientationDisplay = document.getElementById('orientation-display');
+        if (!orientationDisplay) return;
+
+        const canvas = this.renderer.domElement;
+        const rect = canvas.getBoundingClientRect();
+
+        // Convert to NDC coordinates
+        const mouseNDC = new THREE.Vector2(
+            ((x - rect.left) / rect.width) * 2 - 1,
+            -((y - rect.top) / rect.height) * 2 + 1
+        );
+
+        // Update raycaster
+        this.raycaster.setFromCamera(mouseNDC, this.camera);
+
+        // Get all meshes from the scene
+        const meshes = [];
+        this.scene.traverse((obj) => {
+            if (obj instanceof THREE.Mesh) {
+                meshes.push(obj);
+            }
+        });
+
+        // Raycast to find intersection
+        const intersects = this.raycaster.intersectObjects(meshes, false);
+
+        if (intersects.length > 0) {
+            const face = intersects[0].face;
+            if (face && face.normal) {
+                // Convert Three.js Vector3 to Attitude Vector
+                const attitudeVector = new AttitudeVector([face.normal.x, face.normal.y, face.normal.z]);
+
+                // Calculate dip direction and dip angle
+                const [dipDirection, dip] = spherePlane(attitudeVector);
+
+                // Update orientation display
+                orientationDisplay.textContent = `${Math.round(dipDirection).toString().padStart(3, '0')}/${Math.round(dip).toString().padStart(2, '0')}`;
+            }
+        } else {
+            orientationDisplay.textContent = '000/00';
         }
     }
 

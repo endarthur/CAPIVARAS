@@ -266,6 +266,7 @@ input, select, textarea {
 }
 
 .sidebar-right {
+    width: 380px;
     border-right: none;
     border-left: 1px solid var(--border);
 }
