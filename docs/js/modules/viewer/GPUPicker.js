@@ -518,6 +518,9 @@ function setupGPUPicker(THREE) {
 					}
 
 					__pickingGeometry.computeVertexNormals();
+					// CRITICAL: Compute bounding box/sphere for frustum culling
+					__pickingGeometry.computeBoundingBox();
+					__pickingGeometry.computeBoundingSphere();
 				} else {
 					// Geometry is already non-indexed, use it directly
 					__pickingGeometry = geometry;
@@ -561,6 +564,16 @@ function setupGPUPicker(THREE) {
 				}
 				__pickingGeometry.setAttribute('id', ids);
 				__pickingGeometry.elementsCount = vertexCount / units;
+
+				// CRITICAL: Ensure bounding box/sphere are computed for frustum culling
+				// Without these, Three.js won't render the geometry
+				if (!__pickingGeometry.boundingBox) {
+					__pickingGeometry.computeBoundingBox();
+				}
+				if (!__pickingGeometry.boundingSphere) {
+					__pickingGeometry.computeBoundingSphere();
+				}
+
 				if (this.debug) {
 					console.log("GPUPicker id attribute:");
 					console.log("  - Total vertices:", vertexCount, "units:", units, "elements:", vertexCount / units);
@@ -568,6 +581,8 @@ function setupGPUPicker(THREE) {
 					console.log("  - First 10 ID values:", ids.array.slice(0, 10));
 					console.log("  - ID values around element 1000:", ids.array.slice(6000, 6010));
 					console.log("  - Last 10 ID values:", ids.array.slice(-10));
+					console.log("  - Bounding box:", __pickingGeometry.boundingBox);
+					console.log("  - Bounding sphere:", __pickingGeometry.boundingSphere);
 				}
 				//cache __pickingGeometry inside geometry
 				object.geometry.__pickingGeometry = __pickingGeometry;
