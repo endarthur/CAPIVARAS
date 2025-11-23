@@ -87,11 +87,11 @@ class CapivarasApp {
         document.getElementById('btn-import-mesh').addEventListener('click', () => this.importMesh());
         document.getElementById('btn-import-hint').addEventListener('click', () => this.importMesh());
 
-        // Tools
-        document.getElementById('btn-tool-navigate').addEventListener('click', () => this.setTool('navigate'));
-        document.getElementById('btn-tool-plane').addEventListener('click', () => this.setTool('plane'));
-        document.getElementById('btn-tool-trace').addEventListener('click', () => this.setTool('trace'));
-        document.getElementById('btn-tool-measure').addEventListener('click', () => this.setTool('measure'));
+        // Tools (hand and loupe are handled by ToolController)
+        // Other tools still need to be wired up
+        // document.getElementById('btn-tool-plane').addEventListener('click', () => this.setTool('plane'));
+        // document.getElementById('btn-tool-trace').addEventListener('click', () => this.setTool('trace'));
+        // document.getElementById('btn-tool-measure').addEventListener('click', () => this.setTool('measure'));
 
         // Camera mode
         document.getElementById('camera-mode').addEventListener('change', (e) => {
