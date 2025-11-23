@@ -149,6 +149,8 @@ function setupGPUPicker(THREE) {
 				return null;
 			}
 
+			console.log("[raycastWithID] elID:", elID, "geometry:", geometry.type, "has index:", !!geometry.index);
+
 			inverseMatrix.copy(this.matrixWorld).invert();
 			ray.copy(raycaster.ray).applyMatrix4(inverseMatrix);
 
@@ -157,10 +159,19 @@ function setupGPUPicker(THREE) {
 			var a = j;
 			var b = j + 1;
 			var c = j + 2;
+
+			console.log("[raycastWithID] Triangle indices: a:", a, "b:", b, "c:", c);
+			console.log("[raycastWithID] Position attribute count:", position.count);
+
 			vA.fromBufferAttribute(position, a);
 			vB.fromBufferAttribute(position, b);
 			vC.fromBufferAttribute(position, c);
+
+			console.log("[raycastWithID] Triangle vertices:", vA, vB, vC);
+
 			var intersection = checkIntersection(this, raycaster, ray, vA, vB, vC, intersectionPoint);
+
+			console.log("[raycastWithID] checkIntersection result:", intersection);
 			if (intersection === null) {
 				console.log("WARNING: intersectionPoint missing");
 				return;
