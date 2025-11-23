@@ -345,6 +345,25 @@ function setupGPUPicker(THREE) {
 							"geometry:", obj.geometry ? obj.geometry.type : "none",
 							"visible:", obj.visible);
 
+						// CRITICAL: Check if bounding box/sphere exist (required for frustum culling)
+						if (obj.geometry) {
+							console.log("  - Has boundingBox:", obj.geometry.boundingBox !== null && obj.geometry.boundingBox !== undefined);
+							console.log("  - Has boundingSphere:", obj.geometry.boundingSphere !== null && obj.geometry.boundingSphere !== undefined);
+							if (!obj.geometry.boundingBox || !obj.geometry.boundingSphere) {
+								console.error("  - MISSING BOUNDING VOLUMES! Geometry won't render!");
+								console.log("  - Computing bounding volumes now...");
+								obj.geometry.computeBoundingBox();
+								obj.geometry.computeBoundingSphere();
+							}
+							if (obj.geometry.boundingBox) {
+								console.log("  - BoundingBox min:", obj.geometry.boundingBox.min);
+								console.log("  - BoundingBox max:", obj.geometry.boundingBox.max);
+							}
+							if (obj.geometry.boundingSphere) {
+								console.log("  - BoundingSphere center:", obj.geometry.boundingSphere.center, "radius:", obj.geometry.boundingSphere.radius);
+							}
+						}
+
 						// Check if shader compiled
 						if (obj.material instanceof THREE.ShaderMaterial) {
 							// Trigger shader compilation by rendering once
