@@ -452,16 +452,34 @@ export class ViewerEngine {
         if (this.picker && this.scene) {
             console.log('[ViewerEngine] Updating GPU picker');
 
-            // Create a temporary scene with ONLY mesh objects (no lights, cameras, etc.)
+            // IMPORTANT: Don't clone the entire scene - it includes lights which mess up the traversal
+            // Instead, create a clean scene with ONLY the mesh objects
+
+            // Create a temporary scene with ONLY mesh objects
             const pickableScene = new THREE.Scene();
 
-            // Add only mesh objects from the scene
+            // Add only mesh objects from the main scene
+            // NOTE: Since meshes are direct children of scene (no parent hierarchy),
+            // we can just clone and add them directly
             this.scene.traverse((object) => {
                 if (object.isMesh && object !== this.selectionMarker) {
                     // Clone the mesh for picking
-                    const pickableMesh = object.clone();
+                    const pickableMesh = object.clone(false); // false = don't clone children
+
+                    // Copy transform from original mesh
+                    // Since meshes are direct children of scene, we can just copy local transform
+                    pickableMesh.position.copy(object.position);
+                    pickableMesh.rotation.copy(object.rotation);
+                    pickableMesh.scale.copy(object.scale);
+
+                    // Let Three.js handle matrix updates automatically
+                    pickableMesh.matrixAutoUpdate = true;
+                    pickableMesh.updateMatrix();
+                    pickableMesh.updateMatrixWorld(true);
+
                     pickableScene.add(pickableMesh);
-                    console.log('[ViewerEngine] Added mesh to pickable scene:', object.name);
+                    console.log('[ViewerEngine] Added mesh:', object.name,
+                        'vertices:', pickableMesh.geometry.attributes.position.count);
                 }
             });
 
