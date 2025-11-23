@@ -22,6 +22,12 @@ export class ViewerEngine {
         this.raycaster = new THREE.Raycaster();
         this.selectionMarker = null;
 
+        // Compass (axis helper)
+        this.compassScene = null;
+        this.compassCamera = null;
+        this.compassRenderer = null;
+        this.compass = null;
+
         // Store GPUPicker class reference
         this.GPUPicker = GPUPicker;
 
@@ -93,6 +99,9 @@ export class ViewerEngine {
             }
         });
 
+        // Setup compass
+        this.setupCompass();
+
         // Initial render
         this.render();
 
@@ -107,6 +116,77 @@ export class ViewerEngine {
 
     render() {
         this.renderer.render(this.scene, this.camera);
+        this.renderCompass();
+    }
+
+    /**
+     * Setup compass/axis helper in bottom left corner
+     */
+    setupCompass() {
+        const container = document.getElementById('axis-helper-container');
+        if (!container) {
+            console.warn('[ViewerEngine] Compass container not found');
+            return;
+        }
+
+        // Create compass scene
+        this.compassScene = new THREE.Scene();
+
+        // Create compass camera (orthographic for 2D look)
+        this.compassCamera = new THREE.PerspectiveCamera(50, 1, 1, 1000);
+        this.compassCamera.position.set(0, 0, 200);
+
+        // Create compass renderer
+        this.compassRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        this.compassRenderer.setPixelRatio(window.devicePixelRatio);
+        this.compassRenderer.setSize(150, 150);
+        container.appendChild(this.compassRenderer.domElement);
+
+        // Create compass group
+        this.compass = new THREE.Group();
+
+        // Create ring (outer circle)
+        const ringGeometry = new THREE.RingGeometry(80, 85, 32);
+        ringGeometry.rotateX(Math.PI / 2);
+        const ringMaterial = new THREE.MeshBasicMaterial({
+            color: 0x404040,
+            side: THREE.DoubleSide
+        });
+        const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+        this.compass.add(ring);
+
+        // Create north arrow (red triangle)
+        const arrowGeometry = new THREE.PlaneGeometry(10, 40);
+        arrowGeometry.translate(0, -90, 0);
+        const arrowMaterial = new THREE.MeshBasicMaterial({
+            color: 0xff0000,
+            side: THREE.DoubleSide
+        });
+        const arrow = new THREE.Mesh(arrowGeometry, arrowMaterial);
+        this.compass.add(arrow);
+
+        // Add compass to scene
+        this.compassScene.add(this.compass);
+
+        console.log('[ViewerEngine] Compass initialized');
+    }
+
+    /**
+     * Render compass to match main camera orientation
+     */
+    renderCompass() {
+        if (!this.compass || !this.compassRenderer || !this.compassCamera) return;
+
+        // Match compass rotation to main camera
+        const cameraDir = new THREE.Vector3();
+        this.camera.getWorldDirection(cameraDir);
+
+        // Calculate rotation around Y axis
+        const angle = Math.atan2(cameraDir.x, cameraDir.z);
+        this.compass.rotation.y = -angle;
+
+        // Render compass scene
+        this.compassRenderer.render(this.compassScene, this.compassCamera);
     }
 
     onWindowResize() {
