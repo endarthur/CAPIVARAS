@@ -450,9 +450,23 @@ export class ViewerEngine {
 
     updatePicker() {
         if (this.picker && this.scene) {
-            console.log('[ViewerEngine] Updating GPU picker with scene:', this.scene);
-            console.log('[ViewerEngine] Scene has children:', this.scene.children.length);
-            this.picker.setScene(this.scene);
+            console.log('[ViewerEngine] Updating GPU picker');
+
+            // Create a temporary scene with ONLY mesh objects (no lights, cameras, etc.)
+            const pickableScene = new THREE.Scene();
+
+            // Add only mesh objects from the scene
+            this.scene.traverse((object) => {
+                if (object.isMesh && object !== this.selectionMarker) {
+                    // Clone the mesh for picking
+                    const pickableMesh = object.clone();
+                    pickableScene.add(pickableMesh);
+                    console.log('[ViewerEngine] Added mesh to pickable scene:', object.name);
+                }
+            });
+
+            console.log('[ViewerEngine] Pickable scene has', pickableScene.children.length, 'mesh objects');
+            this.picker.setScene(pickableScene);
             console.log('[ViewerEngine] GPU picker updated');
         }
     }
