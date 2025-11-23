@@ -442,7 +442,7 @@ function setupGPUPicker(THREE) {
 					elementsCount = indices.length / units;
 					positionBuffer = new Float32Array(elementsCount * 3 * units);
 
-					__pickingGeometry.addAttribute('position', new THREE.BufferAttribute(positionBuffer, 3));
+					__pickingGeometry.setAttribute('position', new THREE.BufferAttribute(positionBuffer, 3));
 					for (el = 0; el < elementsCount; ++el) {
 						el3 = units * el;
 						for (i = 0; i < units; ++i) {
@@ -463,7 +463,7 @@ function setupGPUPicker(THREE) {
 					elementsCount = verts.length / 3 - 1;
 					positionBuffer = new Float32Array(elementsCount * units * 3);
 
-					__pickingGeometry.addAttribute('position', new THREE.BufferAttribute(positionBuffer, 3));
+					__pickingGeometry.setAttribute('position', new THREE.BufferAttribute(positionBuffer, 3));
 					for (el = 0; el < elementsCount; ++el) {
 						el3 = 3 * el;
 						vertexIndex3 = el3;
@@ -492,7 +492,7 @@ function setupGPUPicker(THREE) {
 						ids.array[2*(i * units + j) + 1] = i >> 24;
 					}
 				}
-				__pickingGeometry.addAttribute('id', ids);
+				__pickingGeometry.setAttribute('id', ids);
 				__pickingGeometry.elementsCount = vertexCount / units;
 				//cache __pickingGeometry inside geometry
 				object.geometry.__pickingGeometry = __pickingGeometry;
