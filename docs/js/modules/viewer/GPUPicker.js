@@ -504,6 +504,7 @@ function setupGPUPicker(THREE) {
 		}
 		return 0;
 	};
+})(THREE);
 }
 
 // Export both the setup function and the GPUPicker class reference
