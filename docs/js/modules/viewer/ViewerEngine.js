@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
-import { setupGPUPicker } from './GPUPicker.js';
+import { GPUPicker } from './GPUPicker.js';
 
 export class ViewerEngine {
     constructor(app) {
@@ -21,12 +21,12 @@ export class ViewerEngine {
         this.raycaster = new THREE.Raycaster();
         this.selectionMarker = null;
 
+        // Store GPUPicker class reference
+        this.GPUPicker = GPUPicker;
+
         // Initialize loaders
         this.plyLoader = new PLYLoader();
         this.objLoader = new OBJLoader();
-
-        // Setup GPUPicker extensions
-        setupGPUPicker(THREE);
     }
 
     async init(container) {
@@ -63,7 +63,7 @@ export class ViewerEngine {
         this.addDirectionalLight(0.5, 1, -1, 0xffffff, 1);
 
         // Setup GPU picker
-        this.picker = new THREE.GPUPicker({
+        this.picker = new this.GPUPicker({
             renderer: this.renderer,
             debug: false
         });

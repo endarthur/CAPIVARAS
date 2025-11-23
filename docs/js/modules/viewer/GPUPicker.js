@@ -275,7 +275,8 @@ function setupGPUPicker(THREE) {
 
 	}());
 
-	THREE.GPUPicker = function (option) {
+	// Define GPUPicker as a standalone class (not attached to THREE to avoid extensibility issues)
+	var GPUPicker = function (option) {
 		if (option === undefined) {
 			option = {};
 		}
@@ -297,23 +298,31 @@ function setupGPUPicker(THREE) {
 		//default filter
 		this.setFilter();
 	};
-	THREE.GPUPicker.prototype.setRenderer = function (renderer) {
+
+	// Store reference in THREE if possible (for compatibility), but don't fail if not extensible
+	try {
+		THREE.GPUPicker = GPUPicker;
+	} catch (e) {
+		// THREE is not extensible (ES6 module from CDN), continue without it
+	}
+
+	GPUPicker.prototype.setRenderer = function (renderer) {
 		this.renderer = renderer;
 		// this.renderer.setRenderTarget(this.pickingTexture)
 		var size = renderer.getSize(_v2);
 		this.resizeTexture(size.width, size.height);
 		this.needUpdate = true;
 	};
-	THREE.GPUPicker.prototype.resizeTexture = function (width, height) {
+	GPUPicker.prototype.resizeTexture = function (width, height) {
 		this.pickingTexture.setSize(width, height);
 		this.pixelBuffer = new Uint8Array(4 * width * height);
 		this.needUpdate = true;
 	};
-	THREE.GPUPicker.prototype.setCamera = function (camera) {
+	GPUPicker.prototype.setCamera = function (camera) {
 		this.camera = camera;
 		this.needUpdate = true;
 	};
-	THREE.GPUPicker.prototype.update = function () {
+	GPUPicker.prototype.update = function () {
 		if (this.needUpdate) {
 			this.renderer.render(this.pickingScene, this.camera, this.pickingTexture);
 			//read the rendering texture
@@ -322,7 +331,7 @@ function setupGPUPicker(THREE) {
 			if (this.debug) console.log("GPUPicker rendering updated");
 		}
 	};
-	THREE.GPUPicker.prototype.setFilter = function (func) {
+	GPUPicker.prototype.setFilter = function (func) {
 		if (func instanceof Function) {
 			this.filterFunc = func;
 		} else {
@@ -333,14 +342,14 @@ function setupGPUPicker(THREE) {
 		}
 
 	};
-	THREE.GPUPicker.prototype.setScene = function (scene) {
+	GPUPicker.prototype.setScene = function (scene) {
 		this.pickingScene = scene.clone();
 		this._processObject(this.pickingScene, 0);
 		this.needUpdate = true;
 	};
 
 
-	THREE.GPUPicker.prototype.pick = function (mouse, raycaster) {
+	GPUPicker.prototype.pick = function (mouse, raycaster) {
 		this.update();
 		var index = mouse.x + (this.pickingTexture.height - mouse.y) * this.pickingTexture.width;
 		//interpret the pixel as an ID
@@ -367,7 +376,7 @@ function setupGPUPicker(THREE) {
 	/*
 	 * get object by id
 	 */
-	THREE.GPUPicker.prototype._getObject = function (object, baseId, id) {
+	GPUPicker.prototype._getObject = function (object, baseId, id) {
 		// if (this.debug) console.log("_getObject ",baseId);
 		if (object.elementsCount !== undefined && id >= baseId && id < baseId + object.elementsCount) {
 			return [baseId, object];
@@ -387,7 +396,7 @@ function setupGPUPicker(THREE) {
 	/*
 	 * process the object to add elementId information
 	 */
-	THREE.GPUPicker.prototype._processObject = function (object, baseId) {
+	GPUPicker.prototype._processObject = function (object, baseId) {
 		baseId += this._addElementID(object, baseId);
 		for (var i = 0; i < object.children.length; i++) {
 			baseId = this._processObject(object.children[i], baseId);
@@ -396,7 +405,7 @@ function setupGPUPicker(THREE) {
 		return baseId;
 	};
 
-	THREE.GPUPicker.prototype._addElementID = function (object, baseId) {
+	GPUPicker.prototype._addElementID = function (object, baseId) {
 		if (!this.filterFunc(object) && object.geometry !== undefined) {
 			object.visible = false;
 			return 0;
@@ -504,9 +513,13 @@ function setupGPUPicker(THREE) {
 		}
 		return 0;
 	};
+
+	// Return the GPUPicker class so it can be exported
+	return GPUPicker;
 })(THREE);
 }
 
-// Export the setup function only
-// After calling setupGPUPicker(THREE), access GPUPicker via THREE.GPUPicker
-export { setupGPUPicker };
+// Call setup immediately and export both the setup function and GPUPicker class
+const GPUPickerClass = setupGPUPicker(THREE);
+
+export { setupGPUPicker, GPUPickerClass as GPUPicker };
