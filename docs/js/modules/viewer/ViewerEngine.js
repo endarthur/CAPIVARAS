@@ -733,79 +733,38 @@ export class ViewerEngine {
      */
     updateOrientationDisplayLive(x, y) {
         const orientationDisplay = document.getElementById('orientation-display');
-        if (!orientationDisplay || !this.picker || !this.picker.pixelBuffer) return;
+        if (!orientationDisplay || !this.picker) return;
 
         const canvas = this.renderer.domElement;
         const rect = canvas.getBoundingClientRect();
 
-        // Update picker texture if needed (camera moved, scene changed, etc.)
-        if (this.picker.needUpdate) {
-            this.picker.update();
-        }
+        // Convert to raycaster coordinates
+        const mouseNDC = new THREE.Vector2(
+            ((x - rect.left) / rect.width) * 2 - 1,
+            -((y - rect.top) / rect.height) * 2 + 1
+        );
+        this.raycaster.setFromCamera(mouseNDC, this.camera);
 
-        // Convert client coordinates to canvas coordinates
-        const canvasX = Math.floor(x - rect.left);
-        const canvasY = Math.floor(rect.height - (y - rect.top)); // Flip Y for GPU picker
+        // Convert to GPU picker mouse coordinates
+        const mouse = {
+            x: Math.floor(x - rect.left),
+            y: Math.floor(rect.height - (y - rect.top))
+        };
 
-        // Check bounds
-        if (canvasX < 0 || canvasX >= this.picker.pickingTexture.width ||
-            canvasY < 0 || canvasY >= this.picker.pickingTexture.height) {
+        // Use the picker's pick method (it caches the texture and only updates when needed)
+        const intersect = this.picker.pick(mouse, this.raycaster);
+
+        if (intersect && intersect.face && intersect.face.normal) {
+            // Convert face normal to attitude
+            const normal = intersect.face.normal;
+            const attitudeVector = new AttitudeVector([normal.x, normal.y, normal.z]);
+            const [dipDirection, dip] = spherePlane(attitudeVector);
+
+            // Update orientation display
+            orientationDisplay.textContent = `${Math.round(dipDirection).toString().padStart(3, '0')}/${Math.round(dip).toString().padStart(2, '0')}`;
+        } else {
             orientationDisplay.textContent = '000/00';
-            return;
         }
-
-        // Calculate pixel index in buffer
-        const index = canvasX + canvasY * this.picker.pickingTexture.width;
-
-        // Read pixel from cached buffer
-        const r = this.picker.pixelBuffer[index * 4 + 0];
-        const g = this.picker.pixelBuffer[index * 4 + 1];
-        const b = this.picker.pixelBuffer[index * 4 + 2];
-
-        // Decode face ID from RGB
-        const faceId = (b * 255 * 255) + (g * 255) + r;
-
-        if (faceId === 0) {
-            orientationDisplay.textContent = '000/00';
-            return;
-        }
-
-        // Get the object from picker scene
-        const result = this.picker._getObject(this.picker.pickingScene, 0, faceId);
-        const pickerObject = result[1];
-
-        if (!pickerObject || !pickerObject.originalObject) {
-            orientationDisplay.textContent = '000/00';
-            return;
-        }
-
-        // Get the original mesh
-        const originalMesh = pickerObject.originalObject;
-        const geometry = originalMesh.geometry;
-
-        if (!geometry || !geometry.attributes.normal) {
-            orientationDisplay.textContent = '000/00';
-            return;
-        }
-
-        // Calculate which face this is
-        const elementId = faceId - result[0];
-        const faceIndex = elementId;
-
-        // Get face normal from geometry (non-indexed, so 3 vertices per face)
-        const normalAttribute = geometry.attributes.normal;
-        const vertexIndex = faceIndex * 3; // First vertex of the triangle
-
-        const nx = normalAttribute.array[vertexIndex * 3 + 0];
-        const ny = normalAttribute.array[vertexIndex * 3 + 1];
-        const nz = normalAttribute.array[vertexIndex * 3 + 2];
-
-        // Convert to attitude
-        const attitudeVector = new AttitudeVector([nx, ny, nz]);
-        const [dipDirection, dip] = spherePlane(attitudeVector);
-
-        // Update orientation display
-        orientationDisplay.textContent = `${Math.round(dipDirection).toString().padStart(3, '0')}/${Math.round(dip).toString().padStart(2, '0')}`;
     }
 
     setCameraMode(mode) {
