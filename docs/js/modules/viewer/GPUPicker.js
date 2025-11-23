@@ -8,7 +8,7 @@ import * as THREE from 'three';
 
 // Setup function that extends THREE.js prototypes
 function setupGPUPicker(THREE) {
-(function (THREE) {
+	return (function (THREE) {
 	var _v2 = new THREE.Vector2();
 	var FaceIDShader = {
 		vertexShader: [
