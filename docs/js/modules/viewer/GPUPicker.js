@@ -336,6 +336,9 @@ function setupGPUPicker(THREE) {
 			// DEBUG: Check what's actually in the picking scene before rendering
 			if (this.debug) {
 				console.log("GPUPicker update - about to render picking scene");
+				console.log("  - Camera position:", this.camera.position);
+				console.log("  - Camera near/far:", this.camera.near, "/", this.camera.far);
+
 				this.pickingScene.traverse((obj) => {
 					if (obj.material) {
 						console.log("  - Object:", obj.type,
@@ -343,7 +346,15 @@ function setupGPUPicker(THREE) {
 							"isShaderMaterial:", obj.material instanceof THREE.ShaderMaterial,
 							"uniforms:", obj.material.uniforms ? Object.keys(obj.material.uniforms) : "none",
 							"geometry:", obj.geometry ? obj.geometry.type : "none",
-							"visible:", obj.visible);
+							"visible:", obj.visible,
+							"frustumCulled:", obj.frustumCulled);
+
+						// Log mesh transform
+						if (obj.geometry) {
+							console.log("  - Object position:", obj.position);
+							console.log("  - Object scale:", obj.scale);
+							console.log("  - Object rotation:", obj.rotation);
+						}
 
 						// CRITICAL: Check if bounding box/sphere exist (required for frustum culling)
 						if (obj.geometry) {
@@ -610,6 +621,9 @@ function setupGPUPicker(THREE) {
 			//use __pickingGeometry in the picking mesh
 			object.geometry = __pickingGeometry;
 			object.elementsCount = __pickingGeometry.elementsCount;//elements count
+
+			// CRITICAL: Disable frustum culling for picking mesh to ensure it always renders
+			object.frustumCulled = false;
 
 			var pointSize = object.material.size || 0.01;
 			var linewidth = object.material.linewidth || 1;
