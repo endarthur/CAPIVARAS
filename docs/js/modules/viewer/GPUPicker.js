@@ -409,6 +409,18 @@ function setupGPUPicker(THREE) {
 				});
 			}
 
+			// CRITICAL: Force shader compilation before rendering
+			// Without this, Three.js uses a fallback material which outputs wrong colors
+			this.pickingScene.traverse((obj) => {
+				if (obj.material && obj.material.uniforms) {
+					// Compile the shader by calling a dummy render
+					obj.material.needsUpdate = true;
+				}
+			});
+
+			// Force compilation of all shaders in the picking scene
+			this.renderer.compile(this.pickingScene, this.camera);
+
 			// CRITICAL: Clear render target before rendering
 			const gl = this.renderer.getContext();
 			this.renderer.setRenderTarget(this.pickingTexture);
