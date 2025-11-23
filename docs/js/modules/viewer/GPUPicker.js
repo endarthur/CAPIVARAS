@@ -671,7 +671,9 @@ function setupGPUPicker(THREE) {
 					console.log("  - Total vertices:", vertexCount, "units:", units, "elements:", vertexCount / units);
 					console.log("  - ID array length:", ids.array.length);
 					console.log("  - First 10 ID values:", ids.array.slice(0, 10));
-					console.log("  - ID values around element 1000:", ids.array.slice(6000, 6010));
+					console.log("  - ID values for face 0:", ids.array.slice(0, 2));
+					console.log("  - ID values for face 1:", ids.array.slice(6, 8));
+					console.log("  - ID values for face 100:", ids.array.slice(600, 602));
 					console.log("  - Last 10 ID values:", ids.array.slice(-10));
 					console.log("  - Bounding box:", __pickingGeometry.boundingBox);
 					console.log("  - Bounding sphere:", __pickingGeometry.boundingSphere);
