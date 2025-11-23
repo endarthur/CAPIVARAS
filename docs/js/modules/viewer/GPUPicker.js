@@ -172,11 +172,13 @@ function setupGPUPicker(THREE) {
 				return;
 			}
 
-			var face = new THREE.Face3(a, b, c);
-			THREE.Triangle.getNormal(vA, vB, vC, face.normal);
+			// THREE.Face3 removed in r125+ - just add normal directly
+			var normal = new THREE.Vector3();
+			THREE.Triangle.getNormal(vA, vB, vC, normal);
 
-			intersection.face = face;
+			intersection.face = { a: a, b: b, c: c, normal: normal };
 			intersection.faceIndex = a;
+			intersection.index = a; // Add index for compatibility
 			return intersection;
 		};
 

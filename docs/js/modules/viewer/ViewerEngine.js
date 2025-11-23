@@ -49,7 +49,13 @@ export class ViewerEngine {
             powerPreference: 'high-performance'
         });
         this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer.setSize(container.clientWidth, container.clientHeight);
+
+        // Get initial size (may be 0 if container not laid out yet)
+        const initialWidth = container.clientWidth || window.innerWidth;
+        const initialHeight = container.clientHeight || window.innerHeight;
+        console.log('[ViewerEngine] Initial container size:', initialWidth, 'x', initialHeight);
+
+        this.renderer.setSize(initialWidth, initialHeight);
         container.appendChild(this.renderer.domElement);
 
         // Setup controls (event-driven rendering for efficiency)
@@ -77,6 +83,14 @@ export class ViewerEngine {
 
         // Handle window resize
         window.addEventListener('resize', () => this.onWindowResize());
+
+        // Force proper sizing after layout is complete (fixes F12 toggle issue)
+        requestAnimationFrame(() => {
+            if (container.clientWidth > 0 && container.clientHeight > 0) {
+                console.log('[ViewerEngine] Post-layout resize:', container.clientWidth, 'x', container.clientHeight);
+                this.onWindowResize();
+            }
+        });
 
         // Initial render
         this.render();
@@ -466,13 +480,18 @@ export class ViewerEngine {
         this.raycaster.setFromCamera(mouseNDC, this.camera);
 
         // Pick using GPU picker (renders to offscreen buffer)
-        const intersect = this.picker.pick(mouse, this.raycaster);
+        let intersect = null;
+        try {
+            intersect = this.picker.pick(mouse, this.raycaster);
+        } catch (error) {
+            console.error('[ViewerEngine] Picker error:', error);
+        } finally {
+            // CRITICAL: Always reset render target back to screen, even if picking fails
+            this.renderer.setRenderTarget(null);
 
-        // CRITICAL: Reset render target back to screen after GPU picking
-        this.renderer.setRenderTarget(null);
-
-        // Re-render the normal scene to the screen
-        this.render();
+            // Re-render the normal scene to the screen
+            this.render();
+        }
 
         if (intersect) {
             console.log('[ViewerEngine] Picked face:', {
