@@ -215,15 +215,32 @@ class CapivarasApp {
 
     async importMesh() {
         try {
-            const mesh = await this.project.importMesh();
-            if (mesh) {
-                this.layers.addMesh(mesh);
-                this.viewer.addMesh(mesh);
-                this.ui.showNotification('Mesh Imported', `Loaded ${mesh.name}`, 'success');
-                this.viewer.fitToView();
-            }
+            // Step 1: Get file from user
+            const fileData = await this.project.importMesh();
+            if (!fileData) return;
+
+            console.log('[App] Importing mesh:', fileData.name);
+
+            // Step 2: Load geometry into viewer
+            const meshData = await this.viewer.addMesh(fileData);
+
+            // Step 3: Create Mesh object in data model
+            const mesh = this.project.createMeshFromFile(meshData);
+
+            // Step 4: Add to layer tree
+            this.layers.addMesh(mesh);
+
+            // Step 5: Fit camera to view
+            this.viewer.fitToView();
+
+            this.ui.showNotification(
+                'Mesh Imported',
+                `Loaded ${mesh.name} (${mesh.vertexCount.toLocaleString()} vertices)`,
+                'success'
+            );
+
         } catch (error) {
-            console.error('Failed to import mesh:', error);
+            console.error('[App] Failed to import mesh:', error);
             this.ui.showNotification('Import Failed', error.message, 'error');
         }
     }

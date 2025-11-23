@@ -2,10 +2,14 @@
  * ProjectManager - Handle project save/load operations
  */
 
+import { Mesh } from './DataModels.js';
+
 export class ProjectManager {
     constructor() {
         this.currentProject = null;
         this.unsavedChanges = false;
+        this.meshes = [];
+        this.nextMeshId = 1;
     }
 
     async open() {
@@ -63,9 +67,63 @@ export class ProjectManager {
         }
     }
 
+    createMeshFromFile(meshData) {
+        // Create Mesh object using DataModels
+        const mesh = new Mesh(
+            meshData.name,
+            null,  // parent
+            this.nextMeshId++,
+            {
+                type: meshData.type,
+                size: meshData.size,
+                fileName: meshData.file?.name || 'unknown'
+            },
+            meshData.url
+        );
+
+        // Store geometry info from viewer
+        if (meshData.vertexCount) {
+            mesh.data.vertexCount = meshData.vertexCount;
+            mesh.data.faceCount = meshData.faceCount;
+        }
+
+        // Link to Three.js mesh
+        if (meshData.threeMesh) {
+            mesh.mesh = meshData.threeMesh;
+            mesh.vertexCount = meshData.vertexCount;
+            mesh.faceCount = meshData.faceCount;
+        }
+
+        this.meshes.push(mesh);
+        this.markUnsaved();
+
+        console.log(`[ProjectManager] Created mesh #${mesh.id}: ${mesh.name}`);
+        return mesh;
+    }
+
+    removeMesh(meshId) {
+        const index = this.meshes.findIndex(m => m.id === meshId);
+        if (index !== -1) {
+            this.meshes.splice(index, 1);
+            this.markUnsaved();
+            return true;
+        }
+        return false;
+    }
+
+    getMeshById(meshId) {
+        return this.meshes.find(m => m.id === meshId);
+    }
+
+    markUnsaved() {
+        this.unsavedChanges = true;
+    }
+
     clear() {
         this.currentProject = null;
         this.unsavedChanges = false;
+        this.meshes = [];
+        this.nextMeshId = 1;
     }
 
     hasUnsavedChanges() {
